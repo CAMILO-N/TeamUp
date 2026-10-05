@@ -58,6 +58,12 @@ flowchart LR
 | **Postulaciones** | Postularse a un rol; el creador acepta o rechaza |
 | **Vitrina** | Proyectos terminados con imágenes, video y créditos |
 
+## Prototipo y arte
+
+El diseño de la plataforma, la identidad visual y el prototipo navegable están en Figma:
+
+[![Ver prototipo en Figma](https://img.shields.io/badge/Ver%20prototipo%20en-Figma-E4572E?style=for-the-badge&logo=figma&logoColor=white)](https://www.figma.com/make/egdPMLaIE0ehRj88IliyMb/Responsive-Web-Prototype-for-TeamUp?t=sDEuayFbezUxM6km-1)
+
 ---
 
 <div align="center">
