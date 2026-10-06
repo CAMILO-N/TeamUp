@@ -1,17 +1,104 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
 
-    <p>Welcome to TeamUp! This is the home page.</p>
-    <p><a href="{{url_for('login')}}">Iniciar Sesión</a></p>
-    <p><a href="{{url_for('register')}}"> Registrase </a></p>
+    <!-- Barra superior -->
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="logo">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="TeamUp">
+        </a>
+        <nav class="navbar-links">
+            <a href="{{ url_for('register') }}" class="link">Crear cuenta</a>
+            <a href="{{ url_for('login') }}" class="btn btn-principal">Iniciar sesión</a>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- Portada -->
+        <section class="hero">
+            <div class="hero-texto">
+                <h1>Tu campus <br>es <span class="resaltado">tu equipo.</span></h1>
+                <p>Conecta con todos los estudiantes de tu campus, encuentra el talento que tu idea necesita y háganla despegar juntos.</p>
+                <a href="{{ url_for('register') }}" class="btn btn-principal"><span class="flecha">&rarr;</span> Empecemos</a>
+            </div>
+
+            <div class="hero-visual">
+                <div class="anillo anillo-externo"></div>
+                <div class="anillo anillo-interno"></div>
+
+                <div class="idea">
+                    <span class="idea-icono">&#10022;</span>
+                    <p class="idea-titulo">Tu idea</p>
+                    <p class="idea-subtitulo">está por despegar</p>
+                </div>
+
+                <div class="tarjeta tarjeta-lucia">
+                    <span class="avatar avatar-coral">LM</span>
+                    <div>
+                        <p class="tarjeta-titulo">Lucía</p>
+                        <p class="tarjeta-subtitulo">Audiovisuales</p>
+                    </div>
+                </div>
+
+                <div class="tarjeta tarjeta-mateo">
+                    <span class="avatar avatar-azul">MR</span>
+                    <div>
+                        <p class="tarjeta-titulo">Mateo</p>
+                        <p class="tarjeta-subtitulo">Negocios</p>
+                    </div>
+                </div>
+
+                <div class="tarjeta tarjeta-equipo">
+                    <span class="check">&check;</span>
+                    <div>
+                        <p class="tarjeta-titulo">Equipo completo</p>
+                        <p class="tarjeta-subtitulo">5 talentos conectados</p>
+                    </div>
+                </div>
+
+                <span class="chip chip-diseno">Diseño</span>
+                <span class="chip chip-codigo">Código</span>
+                <span class="chip chip-historia">Historia</span>
+            </div>
+        </section>
+
+        <!-- Cómo funciona -->
+        <section class="pasos">
+            <h2>De una idea a un gran equipo</h2>
+
+            <div class="pasos-grid">
+                <article class="paso">
+                    <span class="paso-numero">01</span>
+                    <h3>Publica tu idea</h3>
+                    <p>Cuenta qué quieres crear y define los roles que necesita tu proyecto.</p>
+                </article>
+
+                <article class="paso">
+                    <span class="paso-numero">02</span>
+                    <h3>Arma tu equipo</h3>
+                    <p>Conoce perfiles de otras carreras y elige a las personas indicadas.</p>
+                </article>
+
+                <article class="paso">
+                    <span class="paso-numero">03</span>
+                    <h3>Creen y compartan</h3>
+                    <p>Lleven la idea a la realidad y súmenla al portafolio de todo el equipo.</p>
+                </article>
+            </div>
+        </section>
+
+    </main>
+
+   
 
 </body>
 </html>
-
-

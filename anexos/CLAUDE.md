@@ -30,7 +30,7 @@ Ejemplo de referencia: un estudiante de cine que hace un corto busca guionista (
 - Conexión: **pyodbc** con el **ODBC Driver 18 for SQL Server** (cadena tipo `mssql+pyodbc://...?driver=ODBC+Driver+18+for+SQL+Server`).
 - Acceso a datos: **ORM con Flask-SQLAlchemy**. Los modelos (`Usuario`, `Proyecto`, `Rol`, etc.) son la capa "M" del MVC. Si alguna consulta compleja lo justifica, se puede usar SQL directo puntual, siempre parametrizado.
 - Autenticación: Flask-Login sobre el modelo `Usuario`, con contraseñas hasheadas.
-- Vistas: archivos HTML en `app/templates/` servidos con `render_template` de Flask, **sin sintaxis Jinja** (nada de `{% %}` ni `{{ }}`). CSS, JS e imágenes en `app/static/`.
+- Vistas: archivos HTML en `teamup/templates/` servidos con `render_template` de Flask. Se puede usar sintaxis Jinja, por ejemplo `{{ url_for('login') }}` para los enlaces. CSS, JS e imágenes en `teamup/static/`.
 
 ## Entrega actual
 
