@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logo.png" alt="TeamUp" width="640">
+<img src="assets/LOGO%20TEAMUP.png" alt="TeamUp" width="640">
 
 ### Juntos, las ideas despegan.
 
