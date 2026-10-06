@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="assets/logo.png" alt="TeamUp" width="320">
+<img src="assets/logo.png" alt="TeamUp" width="640">
 
 ### Juntos, las ideas despegan.
 
-**La plataforma donde las carreras hacen equipo.**
+**La plataforma donde los estudiantes hacen equipo.**
 Publica tu proyecto, encuentra compañeros de otras carreras y haz que pase.
 
 ![Python](https://img.shields.io/badge/Python-3.11+-1F1D1B?style=for-the-badge&logo=python&logoColor=F2B33D)
