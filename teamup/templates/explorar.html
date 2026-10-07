@@ -10,16 +10,7 @@
 </head>
 <body>
 
-    <!-- Barra superior -->
-    <header class="navbar">
-        <a href="{{ url_for('principal.explorar') }}" class="logo">
-            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="TeamUp">
-        </a>
-        <nav class="navbar-links">
-            <span class="link">@{{ current_user.nombreUsuario }}</span>
-            <a href="{{ url_for('auth.logout') }}" class="btn btn-secundario">Cerrar sesión</a>
-        </nav>
-    </header>
+    {% include "_navbar.html" %}
 
     <main>
         <section class="explorar">

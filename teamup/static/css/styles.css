@@ -358,3 +358,25 @@ a {
         text-align: center;
     }
 }
+
+/* ===== Icono de perfil (barra superior con sesión) ===== */
+.icono-perfil {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    color: var(--hueso);
+    transition: border-color .15s, box-shadow .15s, color .15s;
+}
+
+.icono-perfil:hover,
+.icono-perfil:focus-visible {
+    color: var(--coral);
+    border-color: var(--coral);
+    box-shadow: 0 0 18px rgba(228, 87, 46, 0.35);
+    outline: none;
+}
