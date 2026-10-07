@@ -182,3 +182,112 @@ La conexión se probó y funciona contra la base `TeamUp`.
 - Crear la tabla en SQL Server.
 - Login, registro y protección de rutas.
 - Agregar los formularios a `login.html` y `register.html`.
+
+> Todo esto quedó hecho en la segunda parte de la sesión (abajo).
+
+---
+
+## Sesión del 6 de octubre de 2026 (segunda parte): entorno, registro y login
+
+### 10. Entorno virtual y `requirements.txt`
+
+**Instalación en la máquina:** Python 3.14.7 instalado con `winget` (con "Add to PATH"). Después de instalar hay que **cerrar y abrir VS Code**: las terminales abiertas antes no ven el nuevo PATH y `python` abre el aviso de Microsoft Store.
+
+```powershell
+python -m venv venv                  # crear el entorno (una vez por máquina)
+.\venv\Scripts\Activate.ps1          # activarlo: aparece (venv) en la terminal
+pip install -r requirements.txt      # instalar las librerías
+python run.py
+```
+
+Si PowerShell no deja ejecutar `Activate.ps1`: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` (una sola vez).
+
+En VS Code hay que elegir el intérprete del entorno (`Ctrl+Shift+P` → *Python: Select Interpreter* → `.\venv\Scripts\python.exe`); si no, marca los imports en amarillo ("could not be resolved").
+
+**¿Se sube el `venv` a GitHub?** Se evaluó y se decidió que **no**:
+
+- El `venv` guarda rutas absolutas de la máquina donde se creó (`pyvenv.cfg` → `home = C:\Users\Camilo\...\Python314`). En otra compu no funciona.
+- Son ~1.800 archivos (42 MB) que generan conflictos imposibles de resolver en los merges.
+
+Lo que se comparte es **`requirements.txt`**, con las versiones exactas (`pip freeze`):
+
+| Situación | Comando |
+|---|---|
+| Bajé cambios del otro | `pip install -r requirements.txt` (solo instala lo nuevo) |
+| Agregué una librería | `pip install <libreria>` y `pip freeze > requirements.txt`, y commit del archivo |
+
+`requirements.txt` no instala lo que no es de Python: **Python 3.14**, el **ODBC Driver 17** y **SQL Server** con la base `TeamUp` se instalan aparte. La base vacía se crea a mano (`CREATE DATABASE TeamUp`); las tablas las crea la app.
+
+### 11. Registro alineado con los modelos
+
+- **Una sola universidad:** se quitó el selector de universidad (fue una confusión de alcance).
+- **Carreras desde la base:** antes estaban escritas a mano en el HTML. Ahora la lista vive en la clase (`CARRERAS` en `carrera.py`), se inserta en la tabla al crearla, el controlador la consulta y el `<select>` se arma con Jinja. El usuario ve el nombre, pero se envía el `idCarrera`, que es lo que pide la FK `carreraUsuario`.
+- **Semestre:** del 1 al 10 como número (se quitó "Egresado" porque la columna es `Integer`).
+
+**Modelo `Usuario` actualizado:** alias `nombreUsuario` (único), primer y segundo nombre, primer y segundo apellido (los segundos opcionales), correo único, una sola contraseña `passwordUsuario` (se eliminó `contrasenaUsuario`, que estaba duplicada), semestre y carrera.
+
+Como `create_all()` **no modifica tablas existentes**, se borró la tabla `usuario` (estaba vacía) para que se creara con las columnas nuevas.
+
+### 12. Login con Flask-Login
+
+| Pieza | Para qué |
+|---|---|
+| `login_manager = LoginManager()` en `extensions.py` | Igual que `db`: se crea vacío y se conecta en `create_app()` |
+| `SECRET_KEY` | Firma la cookie de sesión para que nadie la edite. Sin ella no funcionan sesiones ni `flash` |
+| `login_manager.login_view = "auth.login"` | A dónde manda `@login_required` si no hay sesión |
+| `UserMixin` en `Usuario` | Da `is_authenticated` y lo demás que necesita Flask-Login |
+| `get_id()` en `Usuario` | Flask-Login busca `id` por defecto; el nuestro se llama `idUsuario` |
+| `@login_manager.user_loader` | La cookie solo guarda el id; en cada petición esta función busca al usuario en la base y lo deja en `current_user` |
+
+Funcionamiento:
+
+- **Registro:** valida, guarda la contraseña como hash (`generate_password_hash`, nunca en texto plano), inicia sesión y va a `/explorar`.
+- **Login:** con **correo o alias**. Compara con `check_password_hash`. Si falla, mensaje genérico "Correo o contraseña incorrectos." (no se dice cuál falló, a propósito). Si venía de una página protegida, vuelve a ella (`?next=`).
+- **Logout:** `/logout` cierra la sesión y manda al login.
+- **Explorar** (`/explorar`) tiene `@login_required`: sin sesión redirige a `/login?next=/explorar` con el mensaje "Inicia sesión para continuar."
+
+### 13. Controladores con Blueprints
+
+Las rutas salieron de `__init__.py`. Ahora `__init__.py` solo configura y registra los controladores:
+
+| Blueprint | Archivo | Rutas |
+|---|---|---|
+| `auth` | `controllers/auth.py` | `/register`, `/login`, `/logout` |
+| `principal` | `controllers/principal.py` | `/`, `/explorar` |
+
+Un Blueprint es un grupo de rutas en otro archivo; `app.register_blueprint(auth)` las suma a la app. En `url_for` va el nombre del Blueprint primero: `url_for('auth.login')`.
+
+### 14. Validaciones con Flask-WTF
+
+La primera versión validaba con una cadena de `if / elif` dentro del controlador. Problemas: un solo error a la vez, el error no aparecía junto al campo y el controlador mezclaba reglas con lógica. Se pasó a **Flask-WTF**:
+
+- `teamup/forms.py` tiene `RegistroForm` y `LoginForm`. Cada campo declara sus reglas:
+  - `validators`: `DataRequired`, `Length`, `Email`, `Regexp`, `EqualTo` (contraseñas iguales), `NumberRange`.
+  - `filters`: limpian antes de validar (quitar espacios, correo en minúsculas).
+  - Métodos `validate_<campo>`: reglas que consultan la base (alias y correo repetidos, carrera existente). WTForms los ejecuta solo.
+- En el controlador: `if form.validate_on_submit():` (es POST y pasaron todas las reglas) → guardar. Si no, se vuelve a mostrar el formulario con los errores.
+- `templates/_campos.html` tiene macros de Jinja (`campo`, `selector`, `token`) que dibujan cada campo con su etiqueta, borde rojo y mensaje de error debajo.
+- Se muestran **todos los errores a la vez**, cada uno en su campo, y el formulario conserva lo escrito (menos las contraseñas).
+- **CSRF:** `{{ token(form) }}` agrega un campo oculto con un código secreto; sin él, el formulario se rechaza. Vence a la hora: en ese caso aparece "El formulario expiró. Vuelve a intentarlo."
+
+### 15. Problemas encontrados y cómo se resolvieron
+
+| Problema | Causa | Solución |
+|---|---|---|
+| `Python was not found` (Microsoft Store) | Python no estaba instalado; luego, terminal abierta antes de instalarlo | Instalar Python 3.14 y reabrir VS Code |
+| `Cannot open database "TeamUp"` (4060) | La base no existía en esta máquina | `CREATE DATABASE TeamUp` |
+| `405 Method Not Allowed` al enviar formularios | Las rutas solo aceptaban GET | `methods=["GET", "POST"]` |
+| `NameError: app` | `app.config` se usaba antes de `app = Flask(__name__)` | Crear la app primero |
+| `cannot import name 'UserMixin' from 'flask_sqlalchemy'` | `UserMixin` es de `flask_login` | `from flask_login import UserMixin` e instalar Flask-Login |
+| Columnas nuevas no aparecían en SQL Server | `create_all()` no altera tablas existentes | Borrar la tabla vacía y dejar que se recree |
+| Imports en amarillo en VS Code | VS Code usaba otro intérprete | Seleccionar `venv\Scripts\python.exe` |
+
+### 16. Siguiente paso
+
+- **Modelo `Proyecto`** (título, descripción, categoría, fechas, creador como FK a `usuario`) y, si da el tiempo, `Rol`.
+- **CRUD de proyectos** en `controllers/proyectos.py` con `@login_required`: listar mis proyectos, crear, ver, editar y eliminar. Solo el creador puede editar o eliminar.
+- Plantillas: lista de proyectos y formulario de crear/editar (con un `ProyectoForm` de WTForms).
+- Mostrar los proyectos en Explorar.
+- Grabar el **video** (máx. 3 min): login, registro y que `/explorar` y el CRUD no abren sin sesión.
+- Pasar `stage` → `main`.
+- Pendientes menores: footer del landing.
