@@ -1,0 +1,29 @@
+{# Macros para dibujar campos de WTForms con su etiqueta y su error.
+   Se usan así:  {% from "_campos.html" import campo, selector %}  #}
+
+{# Token CSRF: campo oculto que Flask-WTF exige en cada formulario. Vence a la hora. #}
+{% macro token(form) %}
+{{ form.hidden_tag() }}
+{% if form.csrf_token.errors %}<div class="error visible">El formulario expiró. Vuelve a intentarlo.</div>{% endif %}
+{% endmacro %}
+
+{% macro campo(field, placeholder="", autocomplete="off") %}
+<div class="field">
+    {{ field.label }}
+    {{ field(placeholder=placeholder, autocomplete=autocomplete, class_="invalido" if field.errors else "") }}
+    {% if field.errors %}<small class="error-campo">{{ field.errors[0] }}</small>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro selector(field) %}
+<div class="field">
+    {{ field.label }}
+    <select id="{{ field.id }}" name="{{ field.name }}" class="{{ 'invalido' if field.errors }}">
+        <option value="" disabled {% if not field.data %}selected{% endif %}>Elige</option>
+        {% for valor, texto in field.choices %}
+        <option value="{{ valor }}" {% if field.data == valor %}selected{% endif %}>{{ texto }}</option>
+        {% endfor %}
+    </select>
+    {% if field.errors %}<small class="error-campo">{{ field.errors[0] }}</small>{% endif %}
+</div>
+{% endmacro %}
