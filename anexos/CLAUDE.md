@@ -116,9 +116,12 @@ Ver `anexos/ENTREGA-1.md`. Resumen:
 
 ## README
 
+- Sigue la guía de Alura "Cómo escribir un README increíble": portada con logo, badges, índice, descripción, estado del proyecto, demostración, acceso al proyecto, tecnologías utilizadas, personas desarrolladoras y licencia.
 - Sin emojis.
-- No incluir modelo de datos, flujo de ramas, siguientes etapas, tipos de usuario ni sección de equipo, salvo que se pida.
-- Mantener: qué es, el problema, cómo funciona (diagrama), funcionalidades, cómo correr el proyecto y la sección "Prototipo y arte" con el enlace de Figma.
+- No incluir modelo de datos, flujo de ramas ni tipos de usuario, salvo que se pida.
+- Mantener: qué es, el problema, cómo funciona (diagrama), funcionalidades y la sección "Prototipo y arte" con el enlace de Figma.
+- Actualizar la tabla de "Estado del proyecto" a medida que se terminan funcionalidades, y poner el enlace del video en "Demostración" cuando exista.
+- Autores: Camilo Núñez (CAMILO-N) y Sebastián (SebastianR18).
 
 ## Diseño y marca
 
