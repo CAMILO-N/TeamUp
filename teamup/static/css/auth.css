@@ -96,6 +96,16 @@ body {
   background-repeat: no-repeat;
 }
 
+/* Campo con error (lo marca WTForms desde el servidor) */
+.field .invalido { border-color: var(--teja); }
+
+.error-campo {
+  display: block;
+  margin: 6px 0 0 18px;
+  font-size: 0.8rem;
+  color: #ffb4a3;
+}
+
 .field select option, .field select optgroup { background: var(--superficie); color: var(--hueso); }
 
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

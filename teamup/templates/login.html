@@ -1,3 +1,4 @@
+{% from "_campos.html" import token, campo %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,46 +8,35 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/auth.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
 </head>
 <body>
     <main class="auth">
-        <img class="auth__logo" src="/static/img/logo.png" alt="TeamUp">
+        <a href="{{ url_for('principal.index') }}">
+            <img class="auth__logo" src="{{ url_for('static', filename='img/logo.png') }}" alt="TeamUp">
+        </a>
         <p class="auth__slogan">Juntos, las ideas despegan.</p>
 
         <section class="card">
             <h1>Inicia sesión</h1>
             <p class="card__sub">Entra para publicar proyectos y armar tu equipo.</p>
 
-            <div class="error" id="error"></div>
+            {# Mensajes generales enviados con flash(): credenciales incorrectas o "Inicia sesión para continuar" #}
+            {% with mensajes = get_flashed_messages() %}
+            {% if mensajes %}<div class="error visible">{{ mensajes[0] }}</div>{% endif %}
+            {% endwith %}
 
-            <form method="POST" action="/login" novalidate>
-                <div class="field">
-                    <label for="correo">Correo institucional</label>
-                    <input type="email" id="correo" name="correo" placeholder="tu.nombre@universidad.edu.ec" autocomplete="email" required>
-                </div>
+            <form method="POST" novalidate>
+                {{ token(form) }}
 
-                <div class="field">
-                    <label for="password">Contraseña</label>
-                    <input type="password" id="password" name="password" placeholder="Tu contraseña" autocomplete="current-password" required>
-                </div>
+                {{ campo(form.correo, "tu.nombre@universidad.edu.ec", "username") }}
+                {{ campo(form.password, "Tu contraseña", "current-password") }}
 
                 <button type="submit" class="btn">Entrar</button>
             </form>
         </section>
 
-        <p class="auth__alt">¿Aún no tienes cuenta? <a href="/register">Regístrate</a></p>
+        <p class="auth__alt">¿Aún no tienes cuenta? <a href="{{ url_for('auth.register') }}">Regístrate</a></p>
     </main>
-
-    <script>
-        // Muestra un mensaje de error si la URL trae ?error=...
-        var params = new URLSearchParams(window.location.search);
-        var msg = params.get("error");
-        if (msg) {
-            var box = document.getElementById("error");
-            box.textContent = msg;
-            box.classList.add("visible");
-        }
-    </script>
 </body>
 </html>
