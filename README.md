@@ -58,6 +58,61 @@ flowchart LR
 | **Postulaciones** | Postularse a un rol; el creador acepta o rechaza |
 | **Vitrina** | Proyectos terminados con imágenes, video y créditos |
 
+## Cómo correr el proyecto
+
+### Requisitos
+
+- [Python 3.14](https://www.python.org/downloads/) (marcar *Add python.exe to PATH* al instalar)
+- [SQL Server](https://www.microsoft.com/sql-server/sql-server-downloads) con Autenticación de Windows
+- [ODBC Driver 17 for SQL Server](https://learn.microsoft.com/sql/connect/odbc/download-odbc-driver-for-sql-server)
+
+### Pasos
+
+1. Clonar el repositorio:
+
+   ```powershell
+   git clone https://github.com/CAMILO-N/TeamUp.git
+   cd TeamUp
+   ```
+
+2. Crear la base de datos vacía en SQL Server (las tablas y las carreras se crean solas al arrancar):
+
+   ```sql
+   CREATE DATABASE TeamUp;
+   ```
+
+3. Crear y activar el entorno virtual, e instalar las dependencias:
+
+   ```powershell
+   python -m venv venv
+   .\venv\Scripts\Activate.ps1
+   pip install -r requirements.txt
+   ```
+
+4. Arrancar la aplicación:
+
+   ```powershell
+   python run.py
+   ```
+
+5. Abrir [http://localhost](http://localhost) en el navegador.
+
+### Estructura
+
+El proyecto sigue el patrón **MVC** con Flask:
+
+```
+TeamUp/
+├── run.py              punto de entrada
+├── requirements.txt    dependencias
+└── teamup/
+    ├── models/         Modelo: clases que representan las tablas (SQLAlchemy)
+    ├── templates/      Vista: páginas HTML (Jinja)
+    ├── controllers/    Controlador: rutas que reciben la petición y deciden qué hacer
+    ├── forms.py        formularios y validaciones (WTForms)
+    └── static/         CSS e imágenes
+```
+
 ## Prototipo y arte
 
 El diseño de la plataforma, la identidad visual y el prototipo navegable están en Figma:

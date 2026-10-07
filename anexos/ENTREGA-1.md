@@ -37,10 +37,10 @@
 
 ## Checklist
 
-- [ ] Estructura MVC en Flask (modelos, vistas/plantillas, controladores/rutas)
+- [x] Estructura MVC en Flask (modelos, vistas/plantillas, controladores/rutas)
 - [ ] CRUD de proyectos funcionando
-- [ ] Registro e inicio de sesión
-- [ ] Cierre de sesión
-- [ ] URLs del CRUD protegidas (redirigen al login sin sesión)
-- [ ] README actualizado con instrucciones para correr el proyecto
+- [x] Registro e inicio de sesión
+- [x] Cierre de sesión
+- [ ] URLs del CRUD protegidas (redirigen al login sin sesión) — ya funciona con `/explorar`; falta aplicarlo a las rutas del CRUD
+- [x] README actualizado con instrucciones para correr el proyecto
 - [ ] Video de máximo 3 minutos grabado y enlazado
