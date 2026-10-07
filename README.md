@@ -4,7 +4,6 @@
 
 ### Juntos, las ideas despegan.
 
-**La plataforma donde los estudiantes hacen equipo.**
 Conecta con todos los estudiantes de tu campus, encuentra el talento que tu idea necesita y háganla despegar juntos.
 
 ![Python](https://img.shields.io/badge/Python-3.14-1F1D1B?style=for-the-badge&logo=python&logoColor=F2B33D)
