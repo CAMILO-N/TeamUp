@@ -1,0 +1,97 @@
+{% from "_campos.html" import token, campo, selector %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi perfil · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/perfil.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main class="perfil">
+        <a href="{{ url_for('principal.explorar') }}" class="volver">&larr; Volver a Explorar</a>
+        <h1>Mi <span class="resaltado">perfil</span></h1>
+        <p class="perfil-sub">Actualiza tus datos para que otros estudiantes te encuentren.</p>
+
+        {# Avisos enviados con flash(): "Cambios guardados." #}
+        {% with mensajes = get_flashed_messages(with_categories=true) %}
+        {% if mensajes %}
+        <div class="aviso {{ 'ok' if mensajes[0][0] == 'ok' else 'error' }}">{{ mensajes[0][1] }}</div>
+        {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('perfil.editar') }}" novalidate>
+            {{ token(form) }}
+
+            <section class="tarjeta-perfil">
+                <h2>Datos personales</h2>
+
+                {{ campo(form.usuario, "Ej. camilo_n", "username") }}
+
+                <div class="row">
+                    {{ campo(form.primer_nombre, "Primer nombre", "given-name") }}
+                    {{ campo(form.segundo_nombre, "Opcional", "additional-name") }}
+                </div>
+
+                <div class="row">
+                    {{ campo(form.primer_apellido, "Primer apellido", "family-name") }}
+                    {{ campo(form.segundo_apellido, "Opcional") }}
+                </div>
+
+                {{ campo(form.correo, "tu.nombre@universidad.edu.ec", "email") }}
+
+                <div class="row">
+                    {{ selector(form.carrera) }}
+                    {{ selector(form.semestre) }}
+                </div>
+            </section>
+
+            <section class="tarjeta-perfil">
+                <h2>Cambiar contraseña</h2>
+                <p class="nota">Déjalo en blanco si no quieres cambiarla.</p>
+
+                {{ campo(form.password_actual, "Tu contraseña actual", "current-password") }}
+                {{ campo(form.password_nueva, "Mínimo 8 caracteres", "new-password") }}
+                {{ campo(form.password_nueva2, "Repite la nueva contraseña", "new-password") }}
+            </section>
+
+            <div class="acciones">
+                <button type="submit" class="btn btn-principal">Guardar cambios</button>
+            </div>
+        </form>
+                
+            <section class="tarjeta-perfil peligro">
+                <h2>Eliminar cuenta</h2>
+                <p class="nota">Si eliminas tu cuenta, perderás tu perfil y tu acceso a TeamUp. Esta acción no se puede deshacer.</p>
+                <button type="button" class="btn btn-peligro" id="abrir-eliminar">Eliminar mi cuenta</button>
+            </section>
+
+    </main>
+
+        {# Ventana de confirmación: el usuario acepta o rechaza #}
+    <dialog id="dialogo-eliminar" class="dialogo" aria-labelledby="titulo-eliminar">
+        <h2 id="titulo-eliminar">¿Eliminar tu cuenta?</h2>
+        <p>Vas a borrar tu cuenta de forma <strong>permanente</strong>. No podrás recuperarla ni volver a entrar con estos datos.</p>
+        <form method="POST" action="{{ url_for('perfil.eliminar') }}" class="dialogo-acciones">
+            {{ eliminar_form.csrf_token(id="csrf-eliminar") }}
+            <button type="button" class="btn btn-secundario" id="cancelar-eliminar">No, conservar mi cuenta</button>
+            <button type="submit" class="btn btn-peligro">Sí, eliminar mi cuenta</button>
+        </form>
+    </dialog>
+
+    <script>
+        var dialogo = document.getElementById("dialogo-eliminar");
+        document.getElementById("abrir-eliminar").addEventListener("click", function () { dialogo.showModal(); });
+        document.getElementById("cancelar-eliminar").addEventListener("click", function () { dialogo.close(); });
+        // Clic fuera de la tarjeta = rechazar
+        dialogo.addEventListener("click", function (e) { if (e.target === dialogo) dialogo.close(); });
+    </script>
+
+</body>
+</html>

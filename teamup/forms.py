@@ -1,8 +1,10 @@
 from flask_wtf import FlaskForm
+from werkzeug.security import check_password_hash
 from wtforms import EmailField, PasswordField, SelectField, StringField
 from wtforms.validators import (
     DataRequired, Email, EqualTo, Length, NumberRange, Optional, Regexp, ValidationError,
 )
+from flask_login import current_user
 
 from teamup.extensions import db
 from teamup.models.carrera import Carrera
@@ -94,3 +96,48 @@ class LoginForm(FlaskForm):
     password = PasswordField("Contraseña", validators=[
         DataRequired("Escribe tu contraseña."),
     ])
+
+
+class PerfilForm(RegistroForm):
+    """Editar el perfil: los mismos datos del registro, pero sin contraseña."""
+
+    # En WTForms, poner un campo en None lo quita del formulario heredado
+    password = None
+    password2 = None
+    
+    password_actual = PasswordField("Contraseña actual")
+    password_nueva = PasswordField("Nueva contraseña", validators=[
+        Optional(),
+        Length(min=8, message="Mínimo 8 caracteres."),
+    ])
+    password_nueva2 = PasswordField("Confirmar nueva contraseña", validators=[
+        EqualTo("password_nueva", message="Las contraseñas no coinciden."),
+    ])
+
+    # Mismas reglas del registro, pero ignorando a la propia persona:
+    # si no cambia su alias o su correo, no debe salir "ya está en uso".
+
+    def validate_usuario(self, campo):
+        otro = Usuario.query.filter(
+            Usuario.nombreUsuario == campo.data,
+            Usuario.idUsuario != current_user.idUsuario,
+        ).first()
+        if otro:
+            raise ValidationError("Ese nombre de usuario ya está en uso.")
+
+    def validate_correo(self, campo):
+        otro = Usuario.query.filter(
+            Usuario.emailUsuario == campo.data,
+            Usuario.idUsuario != current_user.idUsuario,
+        ).first()
+        if otro:
+            raise ValidationError("Ya existe una cuenta con ese correo.")
+    
+    def validate_password_actual(self, campo):
+        # Solo importa si escribió una contraseña nueva
+        if self.password_nueva.data:
+            if not campo.data or not check_password_hash(current_user.passwordUsuario, campo.data):
+                raise ValidationError("La contraseña actual no es correcta.")
+            
+class EliminarCuentaForm(FlaskForm):
+    """Sin campos: solo sirve para llevar el token CSRF del botón de eliminar cuenta."""
