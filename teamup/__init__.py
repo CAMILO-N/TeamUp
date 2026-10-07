@@ -13,18 +13,17 @@ def create_app():
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "teamup-clave-de-desarrollo")
 
     db.init_app(app)
-
-#@login_required redirige a esta ruta
     login_manager.init_app(app)
+
+    
     login_manager.login_view = "auth.login"
     login_manager.login_message = "Inicia sesión para continuar."
 
-    # Importar modelos para que create_all() conozca las tablas
     from teamup.models import carrera, usuario
 
     @login_manager.user_loader
     def cargar_usuario(id_usuario):
-        """Flask-Login usa esto para recuperar al usuario de la sesión."""
+      
         return db.session.get(usuario.Usuario, int(id_usuario))
 
     with app.app_context():
