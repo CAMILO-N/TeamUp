@@ -12,12 +12,12 @@
 
     <!-- Barra superior -->
     <header class="navbar">
-        <a href="{{ url_for('index') }}" class="logo">
+        <a href="{{ url_for('principal.index') }}" class="logo">
             <img src="{{ url_for('static', filename='img/logo.png') }}" alt="TeamUp">
         </a>
         <nav class="navbar-links">
-            <a href="{{ url_for('register') }}" class="link">Crear cuenta</a>
-            <a href="{{ url_for('login') }}" class="btn btn-principal">Iniciar sesión</a>
+            <a href="{{ url_for('auth.register') }}" class="link">Crear cuenta</a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-principal">Iniciar sesión</a>
         </nav>
     </header>
 
@@ -28,7 +28,7 @@
             <div class="hero-texto">
                 <h1>Tu campus <br>es <span class="resaltado">tu equipo.</span></h1>
                 <p>Conecta con todos los estudiantes de tu campus, encuentra el talento que tu idea necesita y háganla despegar juntos.</p>
-                <a href="{{ url_for('register') }}" class="btn btn-principal"><span class="flecha">&rarr;</span> Empecemos</a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-principal"><span class="flecha">&rarr;</span> Empecemos</a>
             </div>
 
             <div class="hero-visual">

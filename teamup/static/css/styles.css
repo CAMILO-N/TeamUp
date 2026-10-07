@@ -290,6 +290,24 @@ a {
     line-height: 1.6;
 }
 
+/* ===== Explorar ===== */
+.explorar {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 64px 32px;
+}
+
+.explorar h1 {
+    font-size: 3rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+}
+
+.explorar p {
+    color: var(--gris);
+    font-size: 1.1rem;
+}
+
 /* ===== Pie de página ===== */
 .footer {
     display: flex;
