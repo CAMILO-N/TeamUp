@@ -10,6 +10,12 @@ def create_app():
     
     db.init_app(app)
 
+    # Importar modelos para que create_all() conozca las tablas
+    from teamup.models import carrera, usuario
+
+    with app.app_context():
+        db.create_all()
+
     @app.route("/")
     def index():
         return render_template("index.html")
