@@ -1,0 +1,15 @@
+<header class="navbar">
+    <a href="{{ url_for('principal.explorar') }}" class="logo">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="TeamUp">
+    </a>
+    <nav class="navbar-links">
+        <span class="link nombre-usuario">@{{ current_user.nombreUsuario }}</span>
+        <a href="{{ url_for('perfil.editar') }}" class="icono-perfil" title="Mi perfil" aria-label="Mi perfil">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="8" r="4"></circle>
+                <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path>
+            </svg>
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-secundario">Cerrar sesión</a>
+    </nav>
+</header>
