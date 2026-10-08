@@ -1,0 +1,166 @@
+/* Página "Mi perfil". Usa los colores definidos en styles.css */
+
+.perfil {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 16px 32px 80px;
+}
+
+.perfil h1 {
+    font-size: 2.6rem;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin: 12px 0 4px;
+}
+
+.perfil-sub { color: var(--gris); margin-bottom: 28px; }
+
+.volver { color: var(--gris); font-size: 0.9rem; }
+.volver:hover { color: var(--hueso); }
+
+/* ----- Tarjetas ----- */
+.tarjeta-perfil {
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 28px;
+    padding: 28px;
+    margin-bottom: 20px;
+}
+
+.tarjeta-perfil h2 {
+    font-size: 1.2rem;
+    margin-bottom: 18px;
+}
+
+.nota { color: var(--gris); font-size: 0.9rem; line-height: 1.5; margin: -8px 0 18px; }
+
+/* ----- Campos (mismo estilo que login y registro) ----- */
+.field { margin-bottom: 16px; }
+
+.field label {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--ocre);
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.field input,
+.field select {
+    width: 100%;
+    padding: 12px 18px;
+    font: inherit;
+    color: var(--hueso);
+    background: var(--carbon);
+    border: 1px solid var(--borde);
+    border-radius: 999px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.field input::placeholder { color: #6e6a66; }
+
+.field input:focus,
+.field select:focus {
+    border-color: var(--coral);
+    box-shadow: 0 0 0 3px rgba(228, 87, 46, 0.25);
+}
+
+.field select {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--gris) 50%),
+                      linear-gradient(135deg, var(--gris) 50%, transparent 50%);
+    background-position: calc(100% - 22px) 50%, calc(100% - 16px) 50%;
+    background-size: 6px 6px;
+    background-repeat: no-repeat;
+}
+
+.field select option { background: var(--superficie); color: var(--hueso); }
+
+.field .invalido { border-color: var(--teja); }
+
+.error-campo {
+    display: block;
+    margin: 6px 0 0 18px;
+    font-size: 0.8rem;
+    color: #ffb4a3;
+}
+
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* ----- Avisos ----- */
+.aviso, .error.visible {
+    margin-bottom: 20px;
+    padding: 12px 18px;
+    border-radius: 16px;
+    font-size: 0.92rem;
+}
+
+.aviso.ok {
+    color: var(--ocre);
+    background: rgba(242, 179, 61, 0.1);
+    border: 1px solid rgba(242, 179, 61, 0.45);
+}
+
+.aviso.error, .error.visible {
+    color: #ffb4a3;
+    background: rgba(228, 87, 46, 0.12);
+    border: 1px solid var(--teja);
+}
+
+/* ----- Botones (los <button> no heredan la fuente por defecto) ----- */
+button.btn {
+    font: inherit;
+    font-weight: 600;
+    color: var(--hueso);
+    cursor: pointer;
+    border: 0;
+    transition: background .15s, transform .1s;
+}
+button.btn:active { transform: scale(0.98); }
+button.btn-secundario { border: 1px solid var(--borde); }
+
+.acciones { margin: 8px 0 40px; }
+
+.btn-principal:hover { background: var(--teja); }
+
+@media (max-width: 560px) {
+    .perfil { padding: 8px 16px 64px; }
+    .row { grid-template-columns: 1fr; }
+    .tarjeta-perfil { padding: 22px 18px; }
+    .nombre-usuario { display: none; }
+}
+
+/* ----- Zona de peligro ----- */
+.peligro { border-color: var(--teja); background: rgba(196, 64, 42, 0.08); }
+.peligro h2 { color: #ffb4a3; }
+
+.btn-peligro {
+    background: var(--teja);
+    color: var(--hueso);
+}
+.btn-peligro:hover { background: #a93522; }
+
+/* ----- Ventana de confirmación ----- */
+.dialogo {
+    margin: auto;
+    width: min(460px, calc(100% - 32px));
+    padding: 32px 28px;
+    color: var(--hueso);
+    background: var(--superficie);
+    border: 1px solid var(--teja);
+    border-radius: 28px;
+    box-shadow: 0 0 60px rgba(196, 64, 42, 0.35);
+}
+
+.dialogo::backdrop { background: rgba(23, 22, 26, 0.8); }
+
+.dialogo h2 { font-size: 1.4rem; margin-bottom: 12px; }
+.dialogo p { color: var(--gris); line-height: 1.6; margin-bottom: 24px; }
+.dialogo strong { color: #ffb4a3; }
+
+.dialogo-acciones { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; }
+
+@media (max-width: 560px) {
+    .dialogo-acciones .btn { width: 100%; text-align: center; }
+}

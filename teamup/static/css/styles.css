@@ -290,6 +290,24 @@ a {
     line-height: 1.6;
 }
 
+/* ===== Explorar ===== */
+.explorar {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 64px 32px;
+}
+
+.explorar h1 {
+    font-size: 3rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+}
+
+.explorar p {
+    color: var(--gris);
+    font-size: 1.1rem;
+}
+
 /* ===== Pie de página ===== */
 .footer {
     display: flex;
@@ -339,4 +357,26 @@ a {
         gap: 8px;
         text-align: center;
     }
+}
+
+/* ===== Icono de perfil (barra superior con sesión) ===== */
+.icono-perfil {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    color: var(--hueso);
+    transition: border-color .15s, box-shadow .15s, color .15s;
+}
+
+.icono-perfil:hover,
+.icono-perfil:focus-visible {
+    color: var(--coral);
+    border-color: var(--coral);
+    box-shadow: 0 0 18px rgba(228, 87, 46, 0.35);
+    outline: none;
 }
