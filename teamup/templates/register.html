@@ -1,4 +1,4 @@
-{% from "_fields.html" import csrf, input_field, select_field %}
+{% from "_fields.html" import csrf, input_field, select_field, dependent_select %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -40,8 +40,12 @@
 
                 {{ input_field(form.email, "tu.nombre@universidad.edu.ec", "email") }}
 
-                <div class="row">
-                    {{ select_field(form.major) }}
+                {{ input_field(form.id_number, "Ej. 1712345678", "off", hint="Cédula ecuatoriana de 10 dígitos.", inputmode="numeric", maxlength=10) }}
+
+                {{ select_field(form.faculty) }}
+
+                <div class="row row--wide-first">
+                    {{ dependent_select(form.major, form.faculty) }}
                     {{ select_field(form.semester) }}
                 </div>
 
@@ -54,5 +58,7 @@
 
         <p class="auth__alt">¿Ya tienes cuenta? <a class="auth__link" href="{{ url_for('auth.login') }}">Inicia sesión</a></p>
     </main>
+
+    <script src="{{ url_for('static', filename='js/faculty-major.js') }}"></script>
 </body>
 </html>

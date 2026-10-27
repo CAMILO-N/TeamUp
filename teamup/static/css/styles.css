@@ -87,6 +87,19 @@ a {
     font-weight: 500;
 }
 
+.navbar__link--admin {
+    color: var(--ochre);
+    padding: 6px 14px;
+    border: 1px solid rgba(242, 179, 61, 0.45);
+    border-radius: 999px;
+    font-size: 0.9rem;
+    transition: background .15s;
+}
+
+.navbar__link--admin:hover {
+    background: rgba(242, 179, 61, 0.12);
+}
+
 .navbar__profile {
     display: inline-flex;
     align-items: center;

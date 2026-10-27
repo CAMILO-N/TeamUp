@@ -1,0 +1,70 @@
+{# Panel del administrador: proyectos (incluye los ocultos).
+   Espera: projects (ver _projects.html), csrf_form.
+   Envía (POST, sin campos): /admin/projects/<id>/hide | /show | /delete #}
+{% from "_projects.html" import status_badge, actions %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyectos · Administración · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main class="admin">
+        <h1 class="admin__title">Panel de <span class="highlight">administración</span></h1>
+        <p class="admin__subtitle">Oculta, muestra o borra cualquier proyecto.</p>
+
+        {% include "_admin_tabs.html" %}
+        {% include "_flash.html" %}
+
+        <p class="admin__count">{{ projects|length }} proyecto{{ '' if projects|length == 1 else 's' }}</p>
+
+        {% if projects %}
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Proyecto</th>
+                        <th>Dueño</th>
+                        <th>Estado</th>
+                        <th class="table__end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in projects %}
+                    <tr{% if p.is_hidden %} class="table__row--off"{% endif %}>
+                        <td>
+                            <div class="user-cell">
+                                <span class="user-cell__name">{{ p.title }}</span>
+                                <span class="user-cell__meta user-cell__meta--clamp">{{ p.description }}</span>
+                            </div>
+                        </td>
+                        <td data-label="Dueño">{% if p.owner %}@{{ p.owner.username }}{% else %}—{% endif %}</td>
+                        <td data-label="Estado">{{ status_badge(p) }}</td>
+                        <td data-label="Acciones" class="table__end">{{ actions(p, "/admin/projects", csrf_form) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty">
+            <p class="empty__title">Todavía no hay proyectos</p>
+            <p class="empty__text">Cuando un estudiante cree uno, aparecerá aquí.</p>
+        </div>
+        {% endif %}
+    </main>
+
+    {% include "_delete_dialog.html" %}
+    <script src="{{ url_for('static', filename='js/confirm-delete.js') }}"></script>
+
+</body>
+</html>

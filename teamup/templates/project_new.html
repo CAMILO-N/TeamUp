@@ -1,0 +1,44 @@
+{# Formulario para crear un proyecto. Espera: form con title y description. #}
+{% from "_fields.html" import csrf, input_field, textarea_field %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo proyecto · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main class="profile">
+        <a href="{{ url_for('main.explore') }}" class="profile__back">&larr; Volver a Explorar</a>
+        <h1 class="profile__title">Nuevo <span class="highlight">proyecto</span></h1>
+        <p class="profile__subtitle">Cuenta tu idea para que otros estudiantes del campus la conozcan.</p>
+
+        {% include "_flash.html" %}
+
+        <form method="POST" action="/projects/new" novalidate>
+            {{ csrf(form) }}
+
+            <section class="profile-card">
+                <h2 class="profile-card__title">Datos del proyecto</h2>
+
+                {{ input_field(form.title, "Ej. Cortometraje sobre la vida en el campus", "off") }}
+                {{ textarea_field(form.description, "¿Qué quieres crear y a quién necesitas en tu equipo?", 7) }}
+            </section>
+
+            <div class="profile__actions form-actions">
+                <button type="submit" class="btn btn--primary">Publicar proyecto</button>
+                <a href="{{ url_for('main.explore') }}" class="btn btn--secondary">Cancelar</a>
+            </div>
+        </form>
+    </main>
+
+</body>
+</html>

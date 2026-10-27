@@ -1,4 +1,4 @@
-{% from "_fields.html" import csrf, input_field, select_field %}
+{% from "_fields.html" import csrf, input_field, select_field, dependent_select %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -45,8 +45,17 @@
 
                 {{ input_field(form.email, "tu.nombre@universidad.edu.ec", "email") }}
 
-                <div class="row">
-                    {{ select_field(form.major) }}
+                {# La cédula solo se muestra: no tiene name, así que el formulario no la envía #}
+                <div class="field">
+                    <label class="field__label" for="id-number-locked">Cédula</label>
+                    <input id="id-number-locked" class="field__input field__input--locked" type="text" value="{{ current_user.id_number }}" readonly aria-readonly="true">
+                    <small class="hint">La cédula no se puede cambiar.</small>
+                </div>
+
+                {{ select_field(form.faculty) }}
+
+                <div class="row row--wide-first">
+                    {{ dependent_select(form.major, form.faculty) }}
                     {{ select_field(form.semester) }}
                 </div>
             </section>
@@ -83,6 +92,7 @@
         </form>
     </dialog>
 
+    <script src="{{ url_for('static', filename='js/faculty-major.js') }}"></script>
     <script>
         var dialog = document.getElementById("delete-dialog");
         document.getElementById("open-delete").addEventListener("click", function () { dialog.showModal(); });
