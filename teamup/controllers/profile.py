@@ -13,7 +13,7 @@ profile = Blueprint("profile", __name__)
 @profile.route("/profile", methods=["GET", "POST"])
 @login_required
 def edit():
-    # On GET the form shows the current data; on POST, what was submitted
+    # En GET muestra los datos actuales; en POST, lo que se envió
     form = ProfileForm(data={
         "username": current_user.username,
         "first_name": current_user.first_name,

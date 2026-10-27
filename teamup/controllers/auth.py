@@ -47,7 +47,7 @@ def login():
     form = LoginForm()
 
     if form.validate_on_submit():
-        # Users can sign in with their email or their username
+        # Se puede entrar con el correo o con el nombre de usuario
         identifier = form.identifier.data
         user = User.query.filter(
             (User.email == identifier.lower()) | (User.username == identifier)
@@ -56,7 +56,7 @@ def login():
         if user and check_password_hash(user.password_hash, form.password.data):
             login_user(user)
 
-            # Go back to the protected page they came from
+            # Si venía de una página protegida, vuelve a ella
             next_url = request.args.get("next")
             if next_url and next_url.startswith("/") and not next_url.startswith("//"):
                 return redirect(next_url)

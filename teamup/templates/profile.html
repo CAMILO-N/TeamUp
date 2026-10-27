@@ -87,7 +87,7 @@
         var dialog = document.getElementById("delete-dialog");
         document.getElementById("open-delete").addEventListener("click", function () { dialog.showModal(); });
         document.getElementById("cancel-delete").addEventListener("click", function () { dialog.close(); });
-        // Clicking outside the card closes it
+        // Clic fuera de la tarjeta la cierra
         dialog.addEventListener("click", function (e) { if (e.target === dialog) dialog.close(); });
     </script>
 

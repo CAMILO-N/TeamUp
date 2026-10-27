@@ -15,7 +15,7 @@ def create_app():
         "&trusted_connection=yes"
         "&TrustServerCertificate=yes"
     )
-    # Signs the session cookie
+    # Clave para firmar la cookie de sesión
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "teamup-dev-key")
 
     db.init_app(app)
@@ -23,7 +23,7 @@ def create_app():
     login_manager.login_view = "auth.login"
     login_manager.login_message = "Inicia sesión para continuar."
 
-    # Models must be imported so create_all() knows their tables
+    # Se importan los modelos para que create_all() cree sus tablas
     from teamup.models import major, user
 
     @login_manager.user_loader

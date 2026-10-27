@@ -31,10 +31,10 @@ MAJORS = [
 
 @event.listens_for(Major.__table__, "after_create")
 def _insert_majors(target, connection, **kw):
-    """Seed the majors when create_all() creates the table."""
+    """Inserta las carreras cuando create_all() crea la tabla."""
     connection.execute(target.insert(), [{"name": name} for name in MAJORS])
 
 
 def major_choices():
-    """Options for a major <select>, sorted by name."""
+    """Opciones del selector de carrera, ordenadas por nombre."""
     return [(major.id, major.name) for major in Major.query.order_by(Major.name).all()]

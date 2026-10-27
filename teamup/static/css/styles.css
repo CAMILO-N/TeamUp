@@ -1,4 +1,4 @@
-/* Brand colors */
+/* Colores de la marca */
 :root {
     --coral: #E4572E;
     --brick: #C4402A;
@@ -34,7 +34,7 @@ a {
     text-decoration: none;
 }
 
-/* Buttons */
+/* Botones */
 .btn {
     display: inline-block;
     padding: 12px 24px;
@@ -61,7 +61,7 @@ a {
     color: var(--coral);
 }
 
-/* Navbar */
+/* Barra superior */
 .navbar {
     display: flex;
     justify-content: space-between;
@@ -108,7 +108,7 @@ a {
     outline: none;
 }
 
-/* Hero */
+/* Portada */
 .hero {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -163,7 +163,7 @@ a {
     border: 1px solid var(--border);
 }
 
-/* Idea circle */
+/* Círculo de la idea */
 .idea {
     position: absolute;
     top: 50%;
@@ -197,7 +197,7 @@ a {
     opacity: 0.85;
 }
 
-/* Hero cards */
+/* Tarjetas de la portada */
 .hero-card {
     position: absolute;
     display: flex;
@@ -242,7 +242,7 @@ a {
 .avatar--coral { background: #B9667E; }
 .avatar--blue  { background: #5B7DBE; }
 
-/* Chips */
+/* Etiquetas */
 .chip {
     position: absolute;
     padding: 6px 14px;
@@ -257,7 +257,7 @@ a {
 .chip--code   { top: 41%; right: 0; }
 .chip--story  { top: 47%; left: 7%; }
 
-/* How it works */
+/* Cómo funciona */
 .steps {
     border-top: 1px solid var(--border);
     padding: 96px 32px;
@@ -306,7 +306,7 @@ a {
     line-height: 1.6;
 }
 
-/* Explore */
+/* Explorar */
 .explore {
     max-width: 1200px;
     margin: 0 auto;
@@ -324,7 +324,7 @@ a {
     font-size: 1.1rem;
 }
 
-/* Footer */
+/* Pie de página */
 .footer {
     display: flex;
     justify-content: space-between;
@@ -335,7 +335,7 @@ a {
     color: var(--gray);
 }
 
-/* Small screens */
+/* Pantallas pequeñas */
 @media (max-width: 900px) {
     .navbar {
         padding: 16px;

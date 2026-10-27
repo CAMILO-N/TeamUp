@@ -11,7 +11,7 @@ from teamup.models.major import Major
 from teamup.models.user import User
 
 
-# Filters: clean the value before validating it
+# Filtros: limpian el dato antes de validarlo
 
 def strip_spaces(value):
     return value.strip() if value else value
@@ -22,7 +22,7 @@ def lowercase(value):
 
 
 def int_or_none(value):
-    """The empty "Elige" option becomes None."""
+    """La opción vacía "Elige" queda como None."""
     try:
         return int(value)
     except (TypeError, ValueError):
@@ -55,7 +55,7 @@ class RegisterForm(FlaskForm):
         Length(max=100, message="Máximo 100 caracteres."),
         Email("Ingresa un correo válido."),
     ])
-    # Choices are loaded from the database in the controller
+    # Las opciones se cargan desde la base en el controlador
     major = SelectField("Carrera", coerce=int_or_none, validate_choice=False, validators=[
         DataRequired("Elige tu carrera."),
     ])
@@ -73,7 +73,7 @@ class RegisterForm(FlaskForm):
         EqualTo("password", message="Las contraseñas no coinciden."),
     ])
 
-    # Rules that need the database (WTForms runs every validate_<field> method)
+    # Reglas que consultan la base (WTForms ejecuta cada método validate_<campo>)
 
     def validate_username(self, field):
         if User.query.filter_by(username=field.data).first():
@@ -98,9 +98,9 @@ class LoginForm(FlaskForm):
 
 
 class ProfileForm(RegisterForm):
-    """Same data as the register form, with an optional password change."""
+    """Mismos datos del registro, con cambio de contraseña opcional."""
 
-    # Setting a field to None removes it from the inherited form
+    # Poner un campo en None lo quita del formulario heredado
     password = None
     confirm_password = None
 
@@ -113,7 +113,7 @@ class ProfileForm(RegisterForm):
         EqualTo("new_password", message="Las contraseñas no coinciden."),
     ])
 
-    # Same uniqueness rules, ignoring the current user
+    # Mismas reglas de unicidad, sin contar al usuario actual
 
     def validate_username(self, field):
         taken = User.query.filter(User.username == field.data, User.id != current_user.id).first()
@@ -126,11 +126,11 @@ class ProfileForm(RegisterForm):
             raise ValidationError("Ya existe una cuenta con ese correo.")
 
     def validate_current_password(self, field):
-        # Only required when a new password was typed
+        # Solo se pide si escribió una contraseña nueva
         if self.new_password.data:
             if not field.data or not check_password_hash(current_user.password_hash, field.data):
                 raise ValidationError("La contraseña actual no es correcta.")
 
 
 class DeleteAccountForm(FlaskForm):
-    """No fields: it only carries the CSRF token for the delete button."""
+    """Sin campos: solo lleva el token CSRF del botón de eliminar."""

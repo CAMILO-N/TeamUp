@@ -1,4 +1,4 @@
-/* Brand colors */
+/* Colores de la marca */
 :root {
   --coral: #E4572E;
   --brick: #C4402A;
@@ -26,7 +26,7 @@ body {
   background-size: 24px 24px;
 }
 
-/* Auth layout */
+/* Login y registro */
 .auth {
   width: 100%;
   max-width: 440px;
@@ -46,7 +46,7 @@ body {
 .auth__link { color: var(--coral); font-weight: 600; text-decoration: none; }
 .auth__link:hover { text-decoration: underline; }
 
-/* Card */
+/* Tarjeta */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -83,7 +83,7 @@ body {
 .card__btn:hover { background: var(--brick); }
 .card__btn:active { transform: scale(0.98); }
 
-/* Form fields */
+/* Campos del formulario */
 .field { margin-bottom: 16px; }
 
 .field__label {
@@ -137,7 +137,7 @@ body {
 
 .hint { display: block; margin-top: 6px; font-size: 0.78rem; color: var(--gray); }
 
-/* Error message */
+/* Mensaje de error */
 .error {
   display: none;
   margin-bottom: 16px;
@@ -150,7 +150,7 @@ body {
 }
 .error--visible { display: block; }
 
-/* Small screens */
+/* Pantallas pequeñas */
 @media (max-width: 480px) {
   .row { grid-template-columns: 1fr; }
   .card { padding: 24px 20px; }

@@ -1,4 +1,4 @@
-{# Hidden CSRF token that Flask-WTF requires in every form #}
+{# Token CSRF oculto que Flask-WTF pide en cada formulario #}
 {% macro csrf(form) %}
 {{ form.hidden_tag() }}
 {% if form.csrf_token.errors %}<div class="error error--visible">El formulario expiró. Vuelve a intentarlo.</div>{% endif %}
