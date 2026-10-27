@@ -94,17 +94,27 @@ git merge origin/stage
 
 ## Antes de empezar (los dos)
 
-Las tablas de la base cambiaron. Después de bajar los cambios, hay que borrar las tablas viejas en SQL Server; al arrancar la app se vuelven a crear solas, con las facultades y carreras ya cargadas:
+Las tablas de la base cambiaron otra vez (ahora hay roles y proyectos). Después de bajar los cambios, hay que borrar las tablas viejas en SQL Server; al arrancar la app se vuelven a crear solas, con las facultades, carreras y roles ya cargados:
 
 ```sql
+DROP TABLE IF EXISTS projects;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS roles;
 DROP TABLE IF EXISTS majors;
 DROP TABLE IF EXISTS faculties;
 DROP TABLE IF EXISTS usuario;
 DROP TABLE IF EXISTS carrera;
 ```
 
-Después hay que registrarse de nuevo.
+Después hay que registrarse de nuevo (con correo institucional y cédula válida).
+
+**Crear el primer administrador.** Nadie se puede hacer administrador desde la página. Primero te registras normal y luego, en la terminal, desde la carpeta `TeamUp`:
+
+```powershell
+python -m flask --app run create-admin tu_usuario
+```
+
+Desde ahí, ese administrador puede dar el rol a otros en el panel.
 
 ## Nombres que acordamos (para consulta)
 
@@ -112,20 +122,22 @@ Para que lo de cada uno encaje, usamos estos nombres. Si alguien necesita cambia
 
 - **Pedir las carreras de una facultad:** `/faculties/<id>/majors`. Responde algo así: `[{"id": 7, "name": "Ingeniería Civil"}]`
 - **Campos del registro:** `id_number` (cédula), `faculty` (facultad), `major` (carrera)
-- **Campo para crear un proyecto:** `title` y `description`
+- **Campos para crear un proyecto:** `title` y `description`
 - **Pantallas nuevas:** `/admin/users` (usuarios), `/admin/projects` (proyectos), `/projects/new` (crear proyecto)
 - **Saber si quien está viendo la página es administrador:** `current_user.is_admin`
+- **Los roles salen de la tabla `roles`:** en el panel, la lista de roles se arma con la variable `roles` (cada uno con `name` y `label`)
+- **En las plantillas las direcciones se escriben con `url_for`**, nunca a mano. Así, si una ruta cambia, los enlaces se actualizan solos.
 
 ## Avance
 
 - [x] Facultades y carreras en la base
-- [ ] Revisar la cédula (Camilo)
-- [ ] Revisar el correo (Camilo)
-- [ ] Mandar las carreras de cada facultad (Camilo)
-- [ ] Listas de facultad y carrera en la página (Sebastián)
-- [ ] Roles y pantallas protegidas (Camilo)
-- [ ] Panel del administrador (Camilo)
-- [ ] Proyectos mínimos (Camilo)
-- [ ] Diseño de las pantallas nuevas (Sebastián)
+- [x] Revisar la cédula (Camilo)
+- [x] Revisar el correo (Camilo)
+- [x] Mandar las carreras de cada facultad (Camilo)
+- [x] Listas de facultad y carrera en la página (Sebastián)
+- [x] Roles y pantallas protegidas (Camilo)
+- [x] Panel del administrador (Camilo)
+- [x] Proyectos mínimos (Camilo)
+- [x] Diseño de las pantallas nuevas (Sebastián)
 - [ ] Subir la página a internet (Camilo)
 - [ ] README con el enlace a la página

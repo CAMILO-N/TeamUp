@@ -23,8 +23,3 @@ def _insert_majors(target, connection, **kw):
         for faculty, majors in FACULTIES.items()
         for major in majors
     ])
-
-
-def major_choices():
-    """Opciones del selector de carrera, ordenadas por nombre."""
-    return [(major.id, major.name) for major in Major.query.order_by(Major.name).all()]

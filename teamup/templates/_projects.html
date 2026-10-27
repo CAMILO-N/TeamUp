@@ -1,0 +1,28 @@
+{# Piezas de proyectos que se repiten en Explorar y en el panel de administración.
+   Un proyecto debe tener: id, title, description, is_hidden, owner (con .username) #}
+{% from "_fields.html" import csrf_input %}
+
+{% macro status_badge(project) %}
+{% if project.is_hidden %}<span class="badge badge--off">Oculto</span>{% else %}<span class="badge badge--ok">Visible</span>{% endif %}
+{% endmacro %}
+
+{# Botones ocultar/mostrar y borrar. scope = "admin" (administrador) o "projects" (dueño) #}
+{% macro actions(project, scope, csrf_form) %}
+<div class="actions">
+    <form method="POST" action="{{ url_for(scope ~ '.project_action', project_id=project.id, action='show' if project.is_hidden else 'hide') }}">
+        {{ csrf_input(csrf_form) }}
+        <button type="submit" class="btn btn--secondary btn--sm">{{ 'Mostrar' if project.is_hidden else 'Ocultar' }}</button>
+    </form>
+    <button type="button" class="btn btn--danger btn--sm" data-confirm-delete
+            data-action="{{ url_for(scope ~ '.project_action', project_id=project.id, action='delete') }}" data-name="«{{ project.title }}»">Borrar</button>
+</div>
+{% endmacro %}
+
+{% macro card(project, show_owner=true) %}
+<article class="project-card{{ ' project-card--hidden' if project.is_hidden }}">
+    <h3 class="project-card__title">{{ project.title }}</h3>
+    <p class="project-card__text">{{ project.description }}</p>
+    {% if show_owner and project.owner %}<p class="project-card__owner">por <span class="highlight">@{{ project.owner.username }}</span></p>{% endif %}
+    {{ caller() if caller }}
+</article>
+{% endmacro %}

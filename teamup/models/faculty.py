@@ -43,3 +43,8 @@ FACULTIES = {
 def _insert_faculties(target, connection, **kw):
     """Inserta las facultades cuando create_all() crea la tabla."""
     connection.execute(target.insert(), [{"name": name} for name in FACULTIES])
+
+
+def faculty_choices():
+    """Opciones del selector de facultad, ordenadas por nombre."""
+    return [(faculty.id, faculty.name) for faculty in Faculty.query.order_by(Faculty.name).all()]

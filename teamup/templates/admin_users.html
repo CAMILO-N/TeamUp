@@ -1,0 +1,92 @@
+{# Panel del administrador: usuarios.
+   Espera: users (cada uno con id, username, first_name, last_name, email, id_number,
+           role_id, is_active y major con .name), roles (tabla roles), csrf_form.
+   Envía (POST):
+     admin.change_role  campo role   = nombre del rol ("student", "admin"...)
+     admin.set_active   campo active = "1" (activar) | "0" (desactivar) #}
+{% from "_fields.html" import csrf_input %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios · Administración · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main class="admin">
+        <h1 class="admin__title">Panel de <span class="highlight">administración</span></h1>
+        <p class="admin__subtitle">Cambia roles y activa o desactiva cuentas.</p>
+
+        {% include "_admin_tabs.html" %}
+        {% include "_flash.html" %}
+
+        <p class="admin__count">{{ users|length }} usuario{{ '' if users|length == 1 else 's' }}</p>
+
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Carrera</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th class="table__end">Cuenta</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    {% set is_me = u.id == current_user.id %}
+                    <tr{% if not u.is_active %} class="table__row--off"{% endif %}>
+                        <td>
+                            <div class="user-cell">
+                                <span class="user-cell__name">{{ u.first_name }} {{ u.last_name }}{% if is_me %} <span class="badge badge--you">Tú</span>{% endif %}</span>
+                                <span class="user-cell__meta">@{{ u.username }} · {{ u.email }}</span>
+                                <span class="user-cell__meta">Cédula {{ u.id_number }}</span>
+                            </div>
+                        </td>
+                        <td data-label="Carrera">{{ u.major.name if u.major else '—' }}</td>
+                        <td data-label="Rol">
+                            <form method="POST" action="{{ url_for('admin.change_role', user_id=u.id) }}" class="inline-form">
+                                {{ csrf_input(csrf_form) }}
+                                <select name="role" class="field__input field__input--select field__input--sm" aria-label="Rol de @{{ u.username }}"{% if is_me %} disabled title="No puedes cambiar tu propio rol"{% endif %}>
+                                    {% for r in roles %}
+                                    <option value="{{ r.name }}" {% if u.role_id == r.id %}selected{% endif %}>{{ r.label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn--secondary btn--sm"{% if is_me %} disabled{% endif %}>Guardar</button>
+                            </form>
+                        </td>
+                        <td data-label="Estado">
+                            {% if u.is_active %}<span class="badge badge--ok">Activa</span>{% else %}<span class="badge badge--off">Desactivada</span>{% endif %}
+                        </td>
+                        <td data-label="Cuenta" class="table__end">
+                            <form method="POST" action="{{ url_for('admin.set_active', user_id=u.id) }}">
+                                {{ csrf_input(csrf_form) }}
+                                {% if u.is_active %}
+                                <input type="hidden" name="active" value="0">
+                                <button type="submit" class="btn btn--outline-danger btn--sm"{% if is_me %} disabled title="No puedes desactivar tu propia cuenta"{% endif %}>Desactivar</button>
+                                {% else %}
+                                <input type="hidden" name="active" value="1">
+                                <button type="submit" class="btn btn--secondary btn--sm">Activar</button>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="table__empty">Todavía no hay usuarios.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+</body>
+</html>
