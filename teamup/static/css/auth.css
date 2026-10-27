@@ -124,6 +124,10 @@ body {
 
 .field__input option, .field__input optgroup { background: var(--surface); color: var(--bone); }
 
+.field__input--select { padding-right: 40px; text-overflow: ellipsis; }
+
+.field__input--select:disabled { opacity: 0.55; cursor: not-allowed; }
+
 .field__input--invalid { border-color: var(--brick); }
 
 .field__error {
@@ -134,6 +138,8 @@ body {
 }
 
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+/* Carrera (nombres largos) más ancha que el semestre */
+.row--wide-first { grid-template-columns: 2fr 1fr; }
 
 .hint { display: block; margin-top: 6px; font-size: 0.78rem; color: var(--gray); }
 
@@ -152,6 +158,6 @@ body {
 
 /* Pantallas pequeñas */
 @media (max-width: 480px) {
-  .row { grid-template-columns: 1fr; }
+  .row, .row--wide-first { grid-template-columns: 1fr; }
   .card { padding: 24px 20px; }
 }

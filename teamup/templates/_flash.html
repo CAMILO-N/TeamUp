@@ -1,0 +1,6 @@
+{# Avisos de flash(): flash("texto", "success") o flash("texto", "error") #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for category, text in messages %}
+<div class="notice notice--{{ 'success' if category == 'success' else 'error' }}">{{ text }}</div>
+{% endfor %}
+{% endwith %}

@@ -4,11 +4,30 @@
 {% if form.csrf_token.errors %}<div class="error error--visible">El formulario expiró. Vuelve a intentarlo.</div>{% endif %}
 {% endmacro %}
 
-{% macro input_field(field, placeholder="", autocomplete="off") %}
+{# Token CSRF para botones sueltos (ocultar, borrar, cambiar rol...).
+   Recibe un formulario vacío, como DeleteAccountForm. Sin id para no repetirlo en la página. #}
+{% macro csrf_input(form) %}
+{% if form %}<input type="hidden" name="{{ form.csrf_token.name }}" value="{{ form.csrf_token._value() }}">{% endif %}
+{% endmacro %}
+
+{# Campo de texto. "hint" es una ayuda que desaparece si hay error;
+   cualquier otro atributo (inputmode, maxlength...) se pasa tal cual al <input>. #}
+{% macro input_field(field, placeholder="", autocomplete="off", hint="") %}
 <div class="field">
     {{ field.label(class_="field__label") }}
-    {{ field(placeholder=placeholder, autocomplete=autocomplete, class_="field__input field__input--invalid" if field.errors else "field__input") }}
-    {% if field.errors %}<small class="field__error">{{ field.errors[0] }}</small>{% endif %}
+    {{ field(placeholder=placeholder, autocomplete=autocomplete, class_="field__input field__input--invalid" if field.errors else "field__input", **kwargs) }}
+    {% if field.errors %}<small class="field__error">{{ field.errors[0] }}</small>
+    {% elif hint %}<small class="hint">{{ hint }}</small>{% endif %}
+</div>
+{% endmacro %}
+
+{# Texto largo (descripción del proyecto) #}
+{% macro textarea_field(field, placeholder="", rows=6, hint="") %}
+<div class="field">
+    {{ field.label(class_="field__label") }}
+    {{ field(placeholder=placeholder, rows=rows, class_="field__input field__input--textarea field__input--invalid" if field.errors else "field__input field__input--textarea", **kwargs) }}
+    {% if field.errors %}<small class="field__error">{{ field.errors[0] }}</small>
+    {% elif hint %}<small class="hint">{{ hint }}</small>{% endif %}
 </div>
 {% endmacro %}
 
@@ -18,8 +37,27 @@
     <select id="{{ field.id }}" name="{{ field.name }}" class="field__input field__input--select{{ ' field__input--invalid' if field.errors }}">
         <option value="" disabled {% if not field.data %}selected{% endif %}>Elige</option>
         {% for value, text in field.choices %}
-        <option value="{{ value }}" {% if field.data == value %}selected{% endif %}>{{ text }}</option>
+        <option value="{{ value }}" {% if field.data|string == value|string %}selected{% endif %}>{{ text }}</option>
         {% endfor %}
+    </select>
+    {% if field.errors %}<small class="field__error">{{ field.errors[0] }}</small>{% endif %}
+</div>
+{% endmacro %}
+
+{# Lista que depende de otra (carrera según facultad).
+   No dibuja opciones: static/js/faculty-major.js las pide a /faculties/<id>/majors
+   cada vez que cambia la lista "parent". Si el formulario vuelve con error, o en
+   "Mi perfil", data-selected le dice qué carrera dejar marcada. #}
+{% macro dependent_select(field, parent, waiting="Primero elige tu facultad") %}
+<div class="field">
+    {{ field.label(class_="field__label") }}
+    <select id="{{ field.id }}" name="{{ field.name }}"
+            class="field__input field__input--select{{ ' field__input--invalid' if field.errors }}"
+            data-parent="{{ parent.id }}"
+            data-url="/faculties/{id}/majors"
+            data-selected="{{ field.data if field.data else '' }}"
+            {% if not parent.data %}disabled{% endif %}>
+        <option value="" disabled selected>{{ waiting }}</option>
     </select>
     {% if field.errors %}<small class="field__error">{{ field.errors[0] }}</small>{% endif %}
 </div>

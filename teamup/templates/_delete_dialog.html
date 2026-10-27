@@ -1,0 +1,12 @@
+{# Ventana de confirmación para borrar (static/js/confirm-delete.js la abre y la llena).
+   Espera: csrf_form #}
+{% from "_fields.html" import csrf_input %}
+<dialog id="delete-dialog" class="dialog" aria-labelledby="delete-title">
+    <h2 id="delete-title" class="dialog__title">¿Eliminar proyecto?</h2>
+    <p class="dialog__text">Vas a borrar <strong class="dialog__emphasis" data-delete-name></strong> de forma <strong class="dialog__emphasis">permanente</strong>. Esta acción no se puede deshacer.</p>
+    <form method="POST" action="" class="dialog__actions">
+        {{ csrf_input(csrf_form) }}
+        <button type="button" class="btn btn--secondary dialog__btn" data-cancel>No, conservarlo</button>
+        <button type="submit" class="btn btn--danger dialog__btn">Sí, eliminar</button>
+    </form>
+</dialog>
