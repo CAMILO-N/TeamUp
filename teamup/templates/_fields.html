@@ -1,0 +1,26 @@
+{# Token CSRF oculto que Flask-WTF pide en cada formulario #}
+{% macro csrf(form) %}
+{{ form.hidden_tag() }}
+{% if form.csrf_token.errors %}<div class="error error--visible">El formulario expiró. Vuelve a intentarlo.</div>{% endif %}
+{% endmacro %}
+
+{% macro input_field(field, placeholder="", autocomplete="off") %}
+<div class="field">
+    {{ field.label(class_="field__label") }}
+    {{ field(placeholder=placeholder, autocomplete=autocomplete, class_="field__input field__input--invalid" if field.errors else "field__input") }}
+    {% if field.errors %}<small class="field__error">{{ field.errors[0] }}</small>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro select_field(field) %}
+<div class="field">
+    {{ field.label(class_="field__label") }}
+    <select id="{{ field.id }}" name="{{ field.name }}" class="field__input field__input--select{{ ' field__input--invalid' if field.errors }}">
+        <option value="" disabled {% if not field.data %}selected{% endif %}>Elige</option>
+        {% for value, text in field.choices %}
+        <option value="{{ value }}" {% if field.data == value %}selected{% endif %}>{{ text }}</option>
+        {% endfor %}
+    </select>
+    {% if field.errors %}<small class="field__error">{{ field.errors[0] }}</small>{% endif %}
+</div>
+{% endmacro %}

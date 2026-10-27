@@ -1,4 +1,4 @@
-{% from "_campos.html" import token, campo %}
+{% from "_fields.html" import csrf, input_field %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -12,31 +12,30 @@
 </head>
 <body>
     <main class="auth">
-        <a href="{{ url_for('principal.index') }}">
+        <a href="{{ url_for('main.index') }}">
             <img class="auth__logo" src="{{ url_for('static', filename='img/logo.png') }}" alt="TeamUp">
         </a>
         <p class="auth__slogan">Juntos, las ideas despegan.</p>
 
         <section class="card">
-            <h1>Inicia sesión</h1>
-            <p class="card__sub">Entra para publicar proyectos y armar tu equipo.</p>
+            <h1 class="card__title">Inicia sesión</h1>
+            <p class="card__subtitle">Entra para publicar proyectos y armar tu equipo.</p>
 
-            {# Mensajes generales enviados con flash(): credenciales incorrectas o "Inicia sesión para continuar" #}
-            {% with mensajes = get_flashed_messages() %}
-            {% if mensajes %}<div class="error visible">{{ mensajes[0] }}</div>{% endif %}
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}<div class="error error--visible">{{ messages[0] }}</div>{% endif %}
             {% endwith %}
 
             <form method="POST" novalidate>
-                {{ token(form) }}
+                {{ csrf(form) }}
 
-                {{ campo(form.correo, "tu.nombre@universidad.edu.ec", "username") }}
-                {{ campo(form.password, "Tu contraseña", "current-password") }}
+                {{ input_field(form.identifier, "tu.nombre@universidad.edu.ec", "username") }}
+                {{ input_field(form.password, "Tu contraseña", "current-password") }}
 
-                <button type="submit" class="btn">Entrar</button>
+                <button type="submit" class="card__btn">Entrar</button>
             </form>
         </section>
 
-        <p class="auth__alt">¿Aún no tienes cuenta? <a href="{{ url_for('auth.register') }}">Regístrate</a></p>
+        <p class="auth__alt">¿Aún no tienes cuenta? <a class="auth__link" href="{{ url_for('auth.register') }}">Regístrate</a></p>
     </main>
 </body>
 </html>
