@@ -41,6 +41,6 @@
 - [ ] CRUD de proyectos funcionando
 - [x] Registro e inicio de sesión
 - [x] Cierre de sesión
-- [ ] URLs del CRUD protegidas (redirigen al login sin sesión) — ya funciona con `/explorar`; falta aplicarlo a las rutas del CRUD
+- [ ] URLs del CRUD protegidas (redirigen al login sin sesión) — ya funciona con `/explore`; falta aplicarlo a las rutas del CRUD
 - [x] README actualizado con instrucciones para correr el proyecto
 - [ ] Video de máximo 3 minutos grabado y enlazado
