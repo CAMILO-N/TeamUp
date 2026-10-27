@@ -1,0 +1,95 @@
+{% from "_fields.html" import csrf, input_field, select_field %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi perfil · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main class="profile">
+        <a href="{{ url_for('main.explore') }}" class="profile__back">&larr; Volver a Explorar</a>
+        <h1 class="profile__title">Mi <span class="highlight">perfil</span></h1>
+        <p class="profile__subtitle">Actualiza tus datos para que otros estudiantes te encuentren.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="notice notice--{{ messages[0][0] }}">{{ messages[0][1] }}</div>
+        {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('profile.edit') }}" novalidate>
+            {{ csrf(form) }}
+
+            <section class="profile-card">
+                <h2 class="profile-card__title">Datos personales</h2>
+
+                {{ input_field(form.username, "Ej. camilo_n", "username") }}
+
+                <div class="row">
+                    {{ input_field(form.first_name, "Primer nombre", "given-name") }}
+                    {{ input_field(form.middle_name, "Opcional", "additional-name") }}
+                </div>
+
+                <div class="row">
+                    {{ input_field(form.last_name, "Primer apellido", "family-name") }}
+                    {{ input_field(form.second_last_name, "Opcional") }}
+                </div>
+
+                {{ input_field(form.email, "tu.nombre@universidad.edu.ec", "email") }}
+
+                <div class="row">
+                    {{ select_field(form.major) }}
+                    {{ select_field(form.semester) }}
+                </div>
+            </section>
+
+            <section class="profile-card">
+                <h2 class="profile-card__title">Cambiar contraseña</h2>
+                <p class="profile-card__note">Déjalo en blanco si no quieres cambiarla.</p>
+
+                {{ input_field(form.current_password, "Tu contraseña actual", "current-password") }}
+                {{ input_field(form.new_password, "Mínimo 8 caracteres", "new-password") }}
+                {{ input_field(form.confirm_new_password, "Repite la nueva contraseña", "new-password") }}
+            </section>
+
+            <div class="profile__actions">
+                <button type="submit" class="btn btn--primary">Guardar cambios</button>
+            </div>
+        </form>
+
+        <section class="profile-card profile-card--danger">
+            <h2 class="profile-card__title">Eliminar cuenta</h2>
+            <p class="profile-card__note">Si eliminas tu cuenta, perderás tu perfil y tu acceso a TeamUp. Esta acción no se puede deshacer.</p>
+            <button type="button" class="btn btn--danger" id="open-delete">Eliminar mi cuenta</button>
+        </section>
+
+    </main>
+
+    <dialog id="delete-dialog" class="dialog" aria-labelledby="delete-title">
+        <h2 id="delete-title" class="dialog__title">¿Eliminar tu cuenta?</h2>
+        <p class="dialog__text">Vas a borrar tu cuenta de forma <strong class="dialog__emphasis">permanente</strong>. No podrás recuperarla ni volver a entrar con estos datos.</p>
+        <form method="POST" action="{{ url_for('profile.delete') }}" class="dialog__actions">
+            {{ delete_form.csrf_token(id="delete-csrf") }}
+            <button type="button" class="btn btn--secondary dialog__btn" id="cancel-delete">No, conservar mi cuenta</button>
+            <button type="submit" class="btn btn--danger dialog__btn">Sí, eliminar mi cuenta</button>
+        </form>
+    </dialog>
+
+    <script>
+        var dialog = document.getElementById("delete-dialog");
+        document.getElementById("open-delete").addEventListener("click", function () { dialog.showModal(); });
+        document.getElementById("cancel-delete").addEventListener("click", function () { dialog.close(); });
+        // Clicking outside the card closes it
+        dialog.addEventListener("click", function (e) { if (e.target === dialog) dialog.close(); });
+    </script>
+
+</body>
+</html>

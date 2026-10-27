@@ -1,16 +1,16 @@
-/* ===== Colores de la marca ===== */
+/* Brand colors */
 :root {
     --coral: #E4572E;
-    --teja: #C4402A;
-    --ocre: #F2B33D;
-    --carbon: #17161A;
-    --superficie: #222126;
-    --borde: #34323A;
-    --hueso: #FAF7F2;
-    --gris: #A29D97;
+    --brick: #C4402A;
+    --ochre: #F2B33D;
+    --charcoal: #17161A;
+    --surface: #222126;
+    --border: #34323A;
+    --bone: #FAF7F2;
+    --gray: #A29D97;
 }
 
-/* ===== Base ===== */
+/* Base */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -19,10 +19,9 @@
 
 body {
     font-family: "IBM Plex Sans", sans-serif;
-    color: var(--hueso);
-    background-color: var(--carbon);
-    /* cuadrícula de puntos sutil */
-    background-image: radial-gradient(var(--borde) 1px, transparent 1px);
+    color: var(--bone);
+    background-color: var(--charcoal);
+    background-image: radial-gradient(var(--border) 1px, transparent 1px);
     background-size: 24px 24px;
 }
 
@@ -35,7 +34,7 @@ a {
     text-decoration: none;
 }
 
-/* ===== Botones ===== */
+/* Buttons */
 .btn {
     display: inline-block;
     padding: 12px 24px;
@@ -43,28 +42,26 @@ a {
     font-weight: 600;
 }
 
-.btn-principal {
+.btn--primary {
     background: var(--coral);
-    color: var(--hueso);
+    color: var(--bone);
     box-shadow: 0 0 24px rgba(228, 87, 46, 0.4);
 }
 
-.btn-secundario {
-    background: var(--superficie);
-    border: 1px solid var(--borde);
+.btn--secondary {
+    background: var(--surface);
+    border: 1px solid var(--border);
 }
 
-.link {
-    color: var(--gris);
+.btn__arrow {
+    margin-right: 10px;
 }
 
-/* ===== Logo ===== */
-.logo img {
-    display: block;
-    height: 64px;
+.highlight {
+    color: var(--coral);
 }
 
-/* ===== Barra superior ===== */
+/* Navbar */
 .navbar {
     display: flex;
     justify-content: space-between;
@@ -74,17 +71,44 @@ a {
     padding: 20px 32px;
 }
 
-.navbar-links {
+.navbar__logo-img {
+    display: block;
+    height: 64px;
+}
+
+.navbar__links {
     display: flex;
     align-items: center;
     gap: 24px;
 }
 
-.navbar-links .link {
+.navbar__link {
+    color: var(--gray);
     font-weight: 500;
 }
 
-/* ===== Portada ===== */
+.navbar__profile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--bone);
+    transition: border-color .15s, box-shadow .15s, color .15s;
+}
+
+.navbar__profile:hover,
+.navbar__profile:focus-visible {
+    color: var(--coral);
+    border-color: var(--coral);
+    box-shadow: 0 0 18px rgba(228, 87, 46, 0.35);
+    outline: none;
+}
+
+/* Hero */
 .hero {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -95,7 +119,7 @@ a {
     padding: 64px 32px;
 }
 
-.hero h1 {
+.hero__title {
     font-size: 5.25rem;
     line-height: 1;
     font-weight: 500;
@@ -103,24 +127,15 @@ a {
     margin-bottom: 24px;
 }
 
-.flecha {
-    margin-right: 10px;
-}
-
-.resaltado {
-    color: var(--coral);
-}
-
-.hero-texto p {
-    color: var(--gris);
+.hero__description {
+    color: var(--gray);
     font-size: 1.1rem;
     line-height: 1.6;
     max-width: 540px;
     margin-bottom: 32px;
 }
 
-/* --- Círculo de "Tu idea" --- */
-.hero-visual {
+.hero__visual {
     position: relative;
     width: 100%;
     max-width: 520px;
@@ -128,7 +143,7 @@ a {
     margin: 0 auto;
 }
 
-.anillo {
+.hero__ring {
     position: absolute;
     border-radius: 50%;
     top: 50%;
@@ -136,18 +151,19 @@ a {
     transform: translate(-50%, -50%);
 }
 
-.anillo-externo {
+.hero__ring--outer {
     width: 100%;
     height: 100%;
-    border: 1px dashed var(--borde);
+    border: 1px dashed var(--border);
 }
 
-.anillo-interno {
+.hero__ring--inner {
     width: 72%;
     height: 72%;
-    border: 1px solid var(--borde);
+    border: 1px solid var(--border);
 }
 
+/* Idea circle */
 .idea {
     position: absolute;
     top: 50%;
@@ -165,48 +181,52 @@ a {
     box-shadow: 0 0 80px rgba(228, 87, 46, 0.45);
 }
 
-.idea-icono {
+.idea__icon {
     font-size: 1.8rem;
     margin-bottom: 8px;
 }
 
-.idea-titulo {
+.idea__title {
     font-family: "Space Grotesk", sans-serif;
     font-weight: 700;
     font-size: 1.6rem;
 }
 
-.idea-subtitulo {
+.idea__subtitle {
     font-size: 0.8rem;
     opacity: 0.85;
 }
 
-/* --- Tarjetas alrededor del círculo --- */
-.tarjeta {
+/* Hero cards */
+.hero-card {
     position: absolute;
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 14px 18px;
-    background: var(--superficie);
-    border: 1px solid var(--borde);
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 14px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
-.tarjeta-titulo {
+.hero-card__title {
     font-weight: 600;
     font-size: 0.9rem;
 }
 
-.tarjeta-subtitulo {
-    color: var(--gris);
+.hero-card__subtitle {
+    color: var(--gray);
     font-size: 0.75rem;
 }
 
-.tarjeta-lucia  { top: 19%; left: 0; }
-.tarjeta-mateo  { top: 69%; right: 0; }
-.tarjeta-equipo { top: 76%; left: 0; }
+.hero-card__check {
+    color: #7BC47F;
+}
+
+.hero-card--lucia { top: 19%; left: 0; }
+.hero-card--mateo { top: 69%; right: 0; }
+.hero-card--team  { top: 76%; left: 0; }
 
 .avatar {
     width: 40px;
@@ -219,42 +239,38 @@ a {
     font-weight: 600;
 }
 
-.avatar-coral { background: #B9667E; }
-.avatar-azul  { background: #5B7DBE; }
+.avatar--coral { background: #B9667E; }
+.avatar--blue  { background: #5B7DBE; }
 
-.check {
-    color: #7BC47F;
-}
-
-/* --- Etiquetas (chips) --- */
+/* Chips */
 .chip {
     position: absolute;
     padding: 6px 14px;
-    border: 1px solid var(--borde);
+    border: 1px solid var(--border);
     border-radius: 999px;
-    background: var(--carbon);
-    color: var(--gris);
+    background: var(--charcoal);
+    color: var(--gray);
     font-size: 0.75rem;
 }
 
-.chip-diseno   { top: 15%; right: 8%; }
-.chip-codigo   { top: 41%; right: 0; }
-.chip-historia { top: 47%; left: 7%; }
+.chip--design { top: 15%; right: 8%; }
+.chip--code   { top: 41%; right: 0; }
+.chip--story  { top: 47%; left: 7%; }
 
-/* ===== Cómo funciona ===== */
-.pasos {
-    border-top: 1px solid var(--borde);
+/* How it works */
+.steps {
+    border-top: 1px solid var(--border);
     padding: 96px 32px;
     text-align: center;
 }
 
-.pasos h2 {
+.steps__title {
     font-size: 2.5rem;
     font-weight: 500;
     margin-bottom: 56px;
 }
 
-.pasos-grid {
+.steps__grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
@@ -262,80 +278,80 @@ a {
     margin: 0 auto;
 }
 
-.paso {
+.step {
     position: relative;
     text-align: left;
     padding: 32px;
-    background: var(--superficie);
-    border: 1px solid var(--borde);
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 24px;
 }
 
-.paso-numero {
+.step__number {
     position: absolute;
     top: 24px;
     right: 28px;
     font-family: "Space Grotesk", sans-serif;
     font-size: 1.8rem;
-    color: var(--borde);
+    color: var(--border);
 }
 
-.paso h3 {
+.step__title {
     font-weight: 500;
     margin: 64px 0 12px;
 }
 
-.paso p {
-    color: var(--gris);
+.step__text {
+    color: var(--gray);
     line-height: 1.6;
 }
 
-/* ===== Explorar ===== */
-.explorar {
+/* Explore */
+.explore {
     max-width: 1200px;
     margin: 0 auto;
     padding: 64px 32px;
 }
 
-.explorar h1 {
+.explore__title {
     font-size: 3rem;
     font-weight: 500;
     margin-bottom: 16px;
 }
 
-.explorar p {
-    color: var(--gris);
+.explore__text {
+    color: var(--gray);
     font-size: 1.1rem;
 }
 
-/* ===== Pie de página ===== */
+/* Footer */
 .footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 32px;
-    border-top: 1px solid var(--borde);
-    background: var(--superficie);
-    color: var(--gris);
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--gray);
 }
 
-/* ===== Pantallas pequeñas (celular y tablet) ===== */
+/* Small screens */
 @media (max-width: 900px) {
     .navbar {
         padding: 16px;
     }
 
-    .navbar-links {
+    .navbar__links {
         gap: 12px;
         white-space: nowrap;
         font-size: 0.85rem;
     }
 
-    .navbar-links .btn {
+    .navbar__btn {
         padding: 8px 16px;
     }
 
-    .logo img {
+    .navbar__logo-img {
         height: 26px;
     }
 
@@ -344,11 +360,11 @@ a {
         padding: 32px 16px;
     }
 
-    .hero h1 {
+    .hero__title {
         font-size: 3rem;
     }
 
-    .pasos-grid {
+    .steps__grid {
         grid-template-columns: 1fr;
     }
 
@@ -357,26 +373,4 @@ a {
         gap: 8px;
         text-align: center;
     }
-}
-
-/* ===== Icono de perfil (barra superior con sesión) ===== */
-.icono-perfil {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: var(--superficie);
-    border: 1px solid var(--borde);
-    color: var(--hueso);
-    transition: border-color .15s, box-shadow .15s, color .15s;
-}
-
-.icono-perfil:hover,
-.icono-perfil:focus-visible {
-    color: var(--coral);
-    border-color: var(--coral);
-    box-shadow: 0 0 18px rgba(228, 87, 46, 0.35);
-    outline: none;
 }

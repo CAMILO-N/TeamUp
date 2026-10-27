@@ -13,9 +13,9 @@
     {% include "_navbar.html" %}
 
     <main>
-        <section class="explorar">
-            <h1>Hola, <span class="resaltado">{{ current_user.primerNombreUsuario }}</span>.</h1>
-            <p>Aquí vas a encontrar los proyectos de tu campus. Muy pronto podrás publicar el tuyo.</p>
+        <section class="explore">
+            <h1 class="explore__title">Hola, <span class="highlight">{{ current_user.first_name }}</span>.</h1>
+            <p class="explore__text">Aquí vas a encontrar los proyectos de tu campus. Muy pronto podrás publicar el tuyo.</p>
         </section>
     </main>
 

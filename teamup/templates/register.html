@@ -1,4 +1,4 @@
-{% from "_campos.html" import token, campo, selector %}
+{% from "_fields.html" import csrf, input_field, select_field %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -12,45 +12,45 @@
 </head>
 <body>
     <main class="auth">
-        <a href="{{ url_for('principal.index') }}">
+        <a href="{{ url_for('main.index') }}">
             <img class="auth__logo" src="{{ url_for('static', filename='img/logo.png') }}" alt="TeamUp">
         </a>
         <p class="auth__slogan">Juntos, las ideas despegan.</p>
 
         <section class="card">
-            <h1>Crea tu cuenta</h1>
-            <p class="card__sub">Únete con tu correo institucional y empieza a hacer equipo.</p>
+            <h1 class="card__title">Crea tu cuenta</h1>
+            <p class="card__subtitle">Únete con tu correo institucional y empieza a hacer equipo.</p>
 
             <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
-                {{ token(form) }}
+                {{ csrf(form) }}
 
-                {{ campo(form.usuario, "Ej. camilo_n", "username") }}
+                {{ input_field(form.username, "Ej. camilo_n", "username") }}
 
                 <div class="row">
-                    {{ campo(form.primer_nombre, "Primer nombre", "given-name") }}
-                    {{ campo(form.segundo_nombre, "Opcional", "additional-name") }}
+                    {{ input_field(form.first_name, "Primer nombre", "given-name") }}
+                    {{ input_field(form.middle_name, "Opcional", "additional-name") }}
                 </div>
 
                 <div class="row">
-                    {{ campo(form.primer_apellido, "Primer apellido", "family-name") }}
-                    {{ campo(form.segundo_apellido, "Opcional") }}
+                    {{ input_field(form.last_name, "Primer apellido", "family-name") }}
+                    {{ input_field(form.second_last_name, "Opcional") }}
                 </div>
 
-                {{ campo(form.correo, "tu.nombre@universidad.edu.ec", "email") }}
+                {{ input_field(form.email, "tu.nombre@universidad.edu.ec", "email") }}
 
                 <div class="row">
-                    {{ selector(form.carrera) }}
-                    {{ selector(form.semestre) }}
+                    {{ select_field(form.major) }}
+                    {{ select_field(form.semester) }}
                 </div>
 
-                {{ campo(form.password, "Mínimo 8 caracteres", "new-password") }}
-                {{ campo(form.password2, "Repite tu contraseña", "new-password") }}
+                {{ input_field(form.password, "Mínimo 8 caracteres", "new-password") }}
+                {{ input_field(form.confirm_password, "Repite tu contraseña", "new-password") }}
 
-                <button type="submit" class="btn">Crear cuenta</button>
+                <button type="submit" class="card__btn">Crear cuenta</button>
             </form>
         </section>
 
-        <p class="auth__alt">¿Ya tienes cuenta? <a href="{{ url_for('auth.login') }}">Inicia sesión</a></p>
+        <p class="auth__alt">¿Ya tienes cuenta? <a class="auth__link" href="{{ url_for('auth.login') }}">Inicia sesión</a></p>
     </main>
 </body>
 </html>

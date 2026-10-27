@@ -3,9 +3,9 @@ from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from teamup.extensions import db
-from teamup.forms import LoginForm, RegistroForm
-from teamup.models.carrera import Carrera
-from teamup.models.usuario import Usuario
+from teamup.forms import LoginForm, RegisterForm
+from teamup.models.major import major_choices
+from teamup.models.user import User
 
 auth = Blueprint("auth", __name__)
 
@@ -13,61 +13,55 @@ auth = Blueprint("auth", __name__)
 @auth.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for("principal.explorar"))
+        return redirect(url_for("main.explore"))
 
-    form = RegistroForm()
-    form.carrera.choices = [
-        (c.idCarrera, c.nombreCarrera)
-        for c in Carrera.query.order_by(Carrera.nombreCarrera).all()
-    ]
+    form = RegisterForm()
+    form.major.choices = major_choices()
 
-    # Es POST y todos los validadores de RegistroForm pasaron
     if form.validate_on_submit():
-        nuevo = Usuario(
-            nombreUsuario=form.usuario.data,
-            primerNombreUsuario=form.primer_nombre.data,
-            segundoNombreUsuario=form.segundo_nombre.data or None,
-            primerApellidoUsuario=form.primer_apellido.data,
-            segundoApellidoUsuario=form.segundo_apellido.data or None,
-            emailUsuario=form.correo.data,
-            passwordUsuario=generate_password_hash(form.password.data),
-            semestreUsuario=form.semestre.data,
-            carreraUsuario=form.carrera.data,
+        new_user = User(
+            username=form.username.data,
+            first_name=form.first_name.data,
+            middle_name=form.middle_name.data or None,
+            last_name=form.last_name.data,
+            second_last_name=form.second_last_name.data or None,
+            email=form.email.data,
+            password_hash=generate_password_hash(form.password.data),
+            semester=form.semester.data,
+            major_id=form.major.data,
         )
-        db.session.add(nuevo)
+        db.session.add(new_user)
         db.session.commit()
 
-        login_user(nuevo)
-        return redirect(url_for("principal.explorar"))
+        login_user(new_user)
+        return redirect(url_for("main.explore"))
 
-    # GET, o POST con errores: se muestra el formulario (con los errores en cada campo)
     return render_template("register.html", form=form)
 
 
 @auth.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("principal.explorar"))
+        return redirect(url_for("main.explore"))
 
     form = LoginForm()
 
     if form.validate_on_submit():
-        # Se puede entrar con el correo o con el nombre de usuario
-        identificador = form.correo.data
-        usuario = Usuario.query.filter(
-            (Usuario.emailUsuario == identificador.lower()) | (Usuario.nombreUsuario == identificador)
+        # Users can sign in with their email or their username
+        identifier = form.identifier.data
+        user = User.query.filter(
+            (User.email == identifier.lower()) | (User.username == identifier)
         ).first()
 
-        if usuario and check_password_hash(usuario.passwordUsuario, form.password.data):
-            login_user(usuario)
+        if user and check_password_hash(user.password_hash, form.password.data):
+            login_user(user)
 
-            # Si venía de una página protegida, volver a ella
-            siguiente = request.args.get("next")
-            if siguiente and siguiente.startswith("/") and not siguiente.startswith("//"):
-                return redirect(siguiente)
-            return redirect(url_for("principal.explorar"))
+            # Go back to the protected page they came from
+            next_url = request.args.get("next")
+            if next_url and next_url.startswith("/") and not next_url.startswith("//"):
+                return redirect(next_url)
+            return redirect(url_for("main.explore"))
 
-        # No se dice cuál de los dos falló, a propósito
         flash("Correo o contraseña incorrectos.")
 
     return render_template("login.html", form=form)
