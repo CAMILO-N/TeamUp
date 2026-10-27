@@ -5,9 +5,9 @@
 {% endmacro %}
 
 {# Token CSRF para botones sueltos (ocultar, borrar, cambiar rol...).
-   Recibe un formulario vacío, como DeleteAccountForm. Sin id para no repetirlo en la página. #}
+   Recibe un formulario vacío (ActionForm). id=False para no repetir el id en la página. #}
 {% macro csrf_input(form) %}
-{% if form %}<input type="hidden" name="{{ form.csrf_token.name }}" value="{{ form.csrf_token._value() }}">{% endif %}
+{% if form %}{{ form.csrf_token(id=False) }}{% endif %}
 {% endmacro %}
 
 {# Campo de texto. "hint" es una ayuda que desaparece si hay error;
@@ -54,7 +54,7 @@
     <select id="{{ field.id }}" name="{{ field.name }}"
             class="field__input field__input--select{{ ' field__input--invalid' if field.errors }}"
             data-parent="{{ parent.id }}"
-            data-url="/faculties/{id}/majors"
+            data-url="{{ url_for('main.faculty_majors', faculty_id=0)|replace('/0/', '/{id}/') }}"
             data-selected="{{ field.data if field.data else '' }}"
             {% if not parent.data %}disabled{% endif %}>
         <option value="" disabled selected>{{ waiting }}</option>

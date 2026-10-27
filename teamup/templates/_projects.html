@@ -6,15 +6,15 @@
 {% if project.is_hidden %}<span class="badge badge--off">Oculto</span>{% else %}<span class="badge badge--ok">Visible</span>{% endif %}
 {% endmacro %}
 
-{# Botones ocultar/mostrar y borrar. base = "/admin/projects" (administrador) o "/projects" (dueño) #}
-{% macro actions(project, base, csrf_form) %}
+{# Botones ocultar/mostrar y borrar. scope = "admin" (administrador) o "projects" (dueño) #}
+{% macro actions(project, scope, csrf_form) %}
 <div class="actions">
-    <form method="POST" action="{{ base }}/{{ project.id }}/{{ 'show' if project.is_hidden else 'hide' }}">
+    <form method="POST" action="{{ url_for(scope ~ '.project_action', project_id=project.id, action='show' if project.is_hidden else 'hide') }}">
         {{ csrf_input(csrf_form) }}
         <button type="submit" class="btn btn--secondary btn--sm">{{ 'Mostrar' if project.is_hidden else 'Ocultar' }}</button>
     </form>
     <button type="button" class="btn btn--danger btn--sm" data-confirm-delete
-            data-action="{{ base }}/{{ project.id }}/delete" data-name="«{{ project.title }}»">Borrar</button>
+            data-action="{{ url_for(scope ~ '.project_action', project_id=project.id, action='delete') }}" data-name="«{{ project.title }}»">Borrar</button>
 </div>
 {% endmacro %}
 

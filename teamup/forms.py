@@ -1,12 +1,13 @@
 from flask_login import current_user
 from flask_wtf import FlaskForm
 from werkzeug.security import check_password_hash
-from wtforms import EmailField, PasswordField, SelectField, StringField
+from wtforms import EmailField, PasswordField, SelectField, StringField, TextAreaField
 from wtforms.validators import (
     DataRequired, Email, EqualTo, Length, NumberRange, Optional, Regexp, ValidationError,
 )
 
 from teamup.extensions import db
+from teamup.models.faculty import Faculty
 from teamup.models.major import Major
 from teamup.models.user import User
 from teamup.validators import EcuadorianIdNumber, InstitutionalEmail
@@ -66,7 +67,10 @@ class RegisterForm(FlaskForm):
         Email("Ingresa un correo válido."),
         InstitutionalEmail(),
     ])
-    # Las opciones se cargan desde la base en el controlador
+    # Las facultades se cargan en el controlador; las carreras las pide el navegador según la facultad
+    faculty = SelectField("Facultad", coerce=int_or_none, validate_choice=False, validators=[
+        DataRequired("Elige tu facultad."),
+    ])
     major = SelectField("Carrera", coerce=int_or_none, validate_choice=False, validators=[
         DataRequired("Elige tu carrera."),
     ])
@@ -98,9 +102,15 @@ class RegisterForm(FlaskForm):
         if User.query.filter_by(id_number=field.data).first():
             raise ValidationError("Ya existe una cuenta con esa cédula.")
 
+    def validate_faculty(self, field):
+        if db.session.get(Faculty, field.data) is None:
+            raise ValidationError("Elige una facultad de la lista.")
+
     def validate_major(self, field):
-        if db.session.get(Major, field.data) is None:
-            raise ValidationError("Elige una carrera de la lista.")
+        # La carrera tiene que ser de la facultad elegida, aunque alguien cambie la página
+        major = db.session.get(Major, field.data)
+        if major is None or major.faculty_id != self.faculty.data:
+            raise ValidationError("Elige una carrera de tu facultad.")
 
 
 class LoginForm(FlaskForm):
@@ -149,5 +159,16 @@ class ProfileForm(RegisterForm):
                 raise ValidationError("La contraseña actual no es correcta.")
 
 
-class DeleteAccountForm(FlaskForm):
-    """Sin campos: solo lleva el token CSRF del botón de eliminar."""
+class ProjectForm(FlaskForm):
+    title = StringField("Título", filters=[strip_spaces], validators=[
+        DataRequired("Escribe un título."),
+        Length(max=80, message="Máximo 80 caracteres."),
+    ])
+    description = TextAreaField("Descripción", filters=[strip_spaces], validators=[
+        DataRequired("Cuenta de qué se trata tu proyecto."),
+        Length(max=1000, message="Máximo 1000 caracteres."),
+    ])
+
+
+class ActionForm(FlaskForm):
+    """Sin campos: solo lleva el token CSRF de los botones (eliminar, ocultar, cambiar rol...)."""

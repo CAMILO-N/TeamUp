@@ -1,6 +1,6 @@
 {# Panel del administrador: proyectos (incluye los ocultos).
    Espera: projects (ver _projects.html), csrf_form.
-   Envía (POST, sin campos): /admin/projects/<id>/hide | /show | /delete #}
+   Envía (POST, sin campos): admin.project_action con action = hide | show | delete #}
 {% from "_projects.html" import status_badge, actions %}
 <!DOCTYPE html>
 <html lang="es">
@@ -49,7 +49,7 @@
                         </td>
                         <td data-label="Dueño">{% if p.owner %}@{{ p.owner.username }}{% else %}—{% endif %}</td>
                         <td data-label="Estado">{{ status_badge(p) }}</td>
-                        <td data-label="Acciones" class="table__end">{{ actions(p, "/admin/projects", csrf_form) }}</td>
+                        <td data-label="Acciones" class="table__end">{{ actions(p, "admin", csrf_form) }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

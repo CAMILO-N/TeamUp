@@ -4,7 +4,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from teamup.extensions import db
 from teamup.forms import LoginForm, RegisterForm
-from teamup.models.major import major_choices
+from teamup.models.faculty import faculty_choices
+from teamup.models.role import STUDENT, Role
 from teamup.models.user import User
 
 auth = Blueprint("auth", __name__)
@@ -16,7 +17,7 @@ def register():
         return redirect(url_for("main.explore"))
 
     form = RegisterForm()
-    form.major.choices = major_choices()
+    form.faculty.choices = faculty_choices()
 
     if form.validate_on_submit():
         new_user = User(
@@ -30,6 +31,7 @@ def register():
             password_hash=generate_password_hash(form.password.data),
             semester=form.semester.data,
             major_id=form.major.data,
+            role=Role.query.filter_by(name=STUDENT).one(),
         )
         db.session.add(new_user)
         db.session.commit()
@@ -55,6 +57,10 @@ def login():
         ).first()
 
         if user and check_password_hash(user.password_hash, form.password.data):
+            if not user.is_active:
+                flash("Tu cuenta está desactivada. Habla con un administrador.")
+                return render_template("login.html", form=form)
+
             login_user(user)
 
             # Si venía de una página protegida, vuelve a ella

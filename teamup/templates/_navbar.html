@@ -4,7 +4,7 @@
     </a>
     <nav class="navbar__links">
         {% if current_user.is_authenticated and current_user.is_admin %}
-        <a href="/admin/users" class="navbar__link navbar__link--admin">Admin</a>
+        <a href="{{ url_for('admin.users') }}" class="navbar__link navbar__link--admin">Admin</a>
         {% endif %}
         <span class="navbar__link navbar__link--user">@{{ current_user.username }}</span>
         <a href="{{ url_for('profile.edit') }}" class="navbar__profile" title="Mi perfil" aria-label="Mi perfil">

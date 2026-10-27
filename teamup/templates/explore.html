@@ -27,7 +27,7 @@
                     <h1 class="explore__title">Hola, <span class="highlight">{{ current_user.first_name }}</span>.</h1>
                     <p class="explore__text">Aquí vas a encontrar los proyectos de tu campus.</p>
                 </div>
-                <a href="/projects/new" class="btn btn--primary"><span class="btn__arrow">+</span> Nuevo proyecto</a>
+                <a href="{{ url_for('projects.new') }}" class="btn btn--primary"><span class="btn__arrow">+</span> Nuevo proyecto</a>
             </div>
 
             {% include "_flash.html" %}
@@ -39,7 +39,7 @@
                 {% call card(p, false) %}
                 <div class="project-card__footer">
                     {{ status_badge(p) }}
-                    {{ actions(p, "/projects", csrf_form) }}
+                    {{ actions(p, "projects", csrf_form) }}
                 </div>
                 {% endcall %}
                 {% endfor %}
@@ -57,7 +57,7 @@
             <div class="empty">
                 <p class="empty__title">Todavía no hay proyectos</p>
                 <p class="empty__text">Sé el primero en publicar una idea para tu campus.</p>
-                <a href="/projects/new" class="btn btn--secondary">Crear un proyecto</a>
+                <a href="{{ url_for('projects.new') }}" class="btn btn--secondary">Crear un proyecto</a>
             </div>
             {% endif %}
         </section>

@@ -23,7 +23,7 @@
 
         {% include "_flash.html" %}
 
-        <form method="POST" action="/projects/new" novalidate>
+        <form method="POST" action="{{ url_for('projects.new') }}" novalidate>
             {{ csrf(form) }}
 
             <section class="profile-card">

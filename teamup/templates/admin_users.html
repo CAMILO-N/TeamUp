@@ -1,9 +1,9 @@
 {# Panel del administrador: usuarios.
    Espera: users (cada uno con id, username, first_name, last_name, email, id_number,
-           is_admin, is_active y major con .name), csrf_form.
+           role_id, is_active y major con .name), roles (tabla roles), csrf_form.
    Envía (POST):
-     /admin/users/<id>/role    campo role   = "student" | "admin"
-     /admin/users/<id>/active  campo active = "1" (activar) | "0" (desactivar) #}
+     admin.change_role  campo role   = nombre del rol ("student", "admin"...)
+     admin.set_active   campo active = "1" (activar) | "0" (desactivar) #}
 {% from "_fields.html" import csrf_input %}
 <!DOCTYPE html>
 <html lang="es">
@@ -54,11 +54,12 @@
                         </td>
                         <td data-label="Carrera">{{ u.major.name if u.major else '—' }}</td>
                         <td data-label="Rol">
-                            <form method="POST" action="/admin/users/{{ u.id }}/role" class="inline-form">
+                            <form method="POST" action="{{ url_for('admin.change_role', user_id=u.id) }}" class="inline-form">
                                 {{ csrf_input(csrf_form) }}
                                 <select name="role" class="field__input field__input--select field__input--sm" aria-label="Rol de @{{ u.username }}"{% if is_me %} disabled title="No puedes cambiar tu propio rol"{% endif %}>
-                                    <option value="student" {% if not u.is_admin %}selected{% endif %}>Estudiante</option>
-                                    <option value="admin" {% if u.is_admin %}selected{% endif %}>Administrador</option>
+                                    {% for r in roles %}
+                                    <option value="{{ r.name }}" {% if u.role_id == r.id %}selected{% endif %}>{{ r.label }}</option>
+                                    {% endfor %}
                                 </select>
                                 <button type="submit" class="btn btn--secondary btn--sm"{% if is_me %} disabled{% endif %}>Guardar</button>
                             </form>
@@ -67,7 +68,7 @@
                             {% if u.is_active %}<span class="badge badge--ok">Activa</span>{% else %}<span class="badge badge--off">Desactivada</span>{% endif %}
                         </td>
                         <td data-label="Cuenta" class="table__end">
-                            <form method="POST" action="/admin/users/{{ u.id }}/active">
+                            <form method="POST" action="{{ url_for('admin.set_active', user_id=u.id) }}">
                                 {{ csrf_input(csrf_form) }}
                                 {% if u.is_active %}
                                 <input type="hidden" name="active" value="0">
