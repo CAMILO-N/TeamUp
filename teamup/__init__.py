@@ -24,7 +24,7 @@ def create_app():
     login_manager.login_message = "Inicia sesión para continuar."
 
     # Se importan los modelos para que create_all() cree sus tablas
-    from teamup.models import major, user
+    from teamup.models import major, user, faculty
 
     @login_manager.user_loader
     def load_user(user_id):
