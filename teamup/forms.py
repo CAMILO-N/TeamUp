@@ -9,6 +9,7 @@ from wtforms.validators import (
 from teamup.extensions import db
 from teamup.models.major import Major
 from teamup.models.user import User
+from teamup.validators import EcuadorianIdNumber, InstitutionalEmail
 
 
 # Filtros: limpian el dato antes de validarlo
@@ -19,6 +20,11 @@ def strip_spaces(value):
 
 def lowercase(value):
     return value.lower() if value else value
+
+
+def remove_separators(value):
+    """Quita espacios y guiones: "171234567-8" queda como "1712345678"."""
+    return value.replace(" ", "").replace("-", "") if value else value
 
 
 def int_or_none(value):
@@ -50,10 +56,15 @@ class RegisterForm(FlaskForm):
         Optional(),
         Length(max=25, message="Máximo 25 caracteres."),
     ])
+    id_number = StringField("Cédula", filters=[remove_separators], validators=[
+        DataRequired("Escribe tu cédula."),
+        EcuadorianIdNumber(),
+    ])
     email = EmailField("Correo institucional", filters=[strip_spaces, lowercase], validators=[
         DataRequired("Escribe tu correo."),
         Length(max=100, message="Máximo 100 caracteres."),
         Email("Ingresa un correo válido."),
+        InstitutionalEmail(),
     ])
     # Las opciones se cargan desde la base en el controlador
     major = SelectField("Carrera", coerce=int_or_none, validate_choice=False, validators=[
@@ -83,6 +94,10 @@ class RegisterForm(FlaskForm):
         if User.query.filter_by(email=field.data).first():
             raise ValidationError("Ya existe una cuenta con ese correo.")
 
+    def validate_id_number(self, field):
+        if User.query.filter_by(id_number=field.data).first():
+            raise ValidationError("Ya existe una cuenta con esa cédula.")
+
     def validate_major(self, field):
         if db.session.get(Major, field.data) is None:
             raise ValidationError("Elige una carrera de la lista.")
@@ -100,7 +115,9 @@ class LoginForm(FlaskForm):
 class ProfileForm(RegisterForm):
     """Mismos datos del registro, con cambio de contraseña opcional."""
 
-    # Poner un campo en None lo quita del formulario heredado
+    # Poner un campo en None lo quita del formulario heredado.
+    # La cédula no se puede cambiar desde el perfil.
+    id_number = None
     password = None
     confirm_password = None
 

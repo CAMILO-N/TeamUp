@@ -26,6 +26,7 @@ def register():
             last_name=form.last_name.data,
             second_last_name=form.second_last_name.data or None,
             email=form.email.data,
+            id_number=form.id_number.data,
             password_hash=generate_password_hash(form.password.data),
             semester=form.semester.data,
             major_id=form.major.data,

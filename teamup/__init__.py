@@ -8,6 +8,9 @@ from teamup.extensions import db, login_manager
 def create_app():
     app = Flask(__name__)
 
+    # Solo se aceptan correos de este dominio
+    app.config["ALLOWED_EMAIL_DOMAIN"] = "udla.edu.ec"
+
     server = os.environ.get("DB_SERVER", "localhost")
     app.config["SQLALCHEMY_DATABASE_URI"] = (
         f"mssql+pyodbc://@{server}/TeamUp"
