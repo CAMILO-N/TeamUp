@@ -68,6 +68,30 @@ Cada pantalla nueva sale funcionando pero sin diseño. Después Sebas la deja bo
 
 ---
 
+## Cómo trabajamos con Git
+
+Ya no hay rama `dev`. El camino es:
+
+```
+devCamilo ─┐
+           ├─→ stage  ─→ main
+devSebas  ─┘
+```
+
+- **`devCamilo` y `devSebas`:** cada uno trabaja en la suya.
+- **`stage`:** donde se junta lo de los dos y se prueba.
+- **`main`:** lo que se entrega y se sube a internet. Siempre tiene que funcionar.
+
+**Antes de empezar a trabajar**, traer lo último de `stage` a tu rama:
+
+```powershell
+git switch devSebas
+git pull origin devSebas
+git merge origin/stage
+```
+
+**Cuando algo ya funciona**, subirlo a tu rama y pasarlo a `stage` (con un pull request en GitHub o con merge).
+
 ## Antes de empezar (los dos)
 
 Las tablas de la base cambiaron. Después de bajar los cambios, hay que borrar las tablas viejas en SQL Server; al arrancar la app se vuelven a crear solas, con las facultades y carreras ya cargadas:
