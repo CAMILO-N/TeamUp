@@ -122,10 +122,10 @@ Para que lo de cada uno encaje, usamos estos nombres. Si alguien necesita cambia
 - [ ] Revisar la cédula (Camilo)
 - [ ] Revisar el correo (Camilo)
 - [ ] Mandar las carreras de cada facultad (Camilo)
-- [ ] Listas de facultad y carrera en la página (Sebastián)
+- [x] Listas de facultad y carrera en la página (Sebastián)
 - [ ] Roles y pantallas protegidas (Camilo)
 - [ ] Panel del administrador (Camilo)
 - [ ] Proyectos mínimos (Camilo)
-- [ ] Diseño de las pantallas nuevas (Sebastián)
+- [x] Diseño de las pantallas nuevas (Sebastián)
 - [ ] Subir la página a internet (Camilo)
 - [ ] README con el enlace a la página
