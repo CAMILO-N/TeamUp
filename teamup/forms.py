@@ -1,65 +1,65 @@
+from flask_login import current_user
 from flask_wtf import FlaskForm
 from werkzeug.security import check_password_hash
 from wtforms import EmailField, PasswordField, SelectField, StringField
 from wtforms.validators import (
     DataRequired, Email, EqualTo, Length, NumberRange, Optional, Regexp, ValidationError,
 )
-from flask_login import current_user
 
 from teamup.extensions import db
-from teamup.models.carrera import Carrera
-from teamup.models.usuario import Usuario
+from teamup.models.major import Major
+from teamup.models.user import User
 
 
-# --- Filtros: limpian el dato antes de validarlo ---
+# Filtros: limpian el dato antes de validarlo
 
-def quitar_espacios(valor):
-    return valor.strip() if valor else valor
-
-
-def minusculas(valor):
-    return valor.lower() if valor else valor
+def strip_spaces(value):
+    return value.strip() if value else value
 
 
-def entero_o_none(valor):
-    """Convierte la opción elegida a número; la opción vacía "Elige" queda como None."""
+def lowercase(value):
+    return value.lower() if value else value
+
+
+def int_or_none(value):
+    """La opción vacía "Elige" queda como None."""
     try:
-        return int(valor)
+        return int(value)
     except (TypeError, ValueError):
         return None
 
 
-class RegistroForm(FlaskForm):
-    usuario = StringField("Nombre de usuario", filters=[quitar_espacios], validators=[
+class RegisterForm(FlaskForm):
+    username = StringField("Nombre de usuario", filters=[strip_spaces], validators=[
         DataRequired("Escribe un nombre de usuario."),
         Regexp(r"^[A-Za-z0-9_.]{3,25}$", message="De 3 a 25 caracteres: letras, números, punto o guion bajo."),
     ])
-    primer_nombre = StringField("Primer nombre", filters=[quitar_espacios], validators=[
+    first_name = StringField("Primer nombre", filters=[strip_spaces], validators=[
         DataRequired("Escribe tu primer nombre."),
         Length(max=25, message="Máximo 25 caracteres."),
     ])
-    segundo_nombre = StringField("Segundo nombre", filters=[quitar_espacios], validators=[
+    middle_name = StringField("Segundo nombre", filters=[strip_spaces], validators=[
         Optional(),
         Length(max=25, message="Máximo 25 caracteres."),
     ])
-    primer_apellido = StringField("Primer apellido", filters=[quitar_espacios], validators=[
+    last_name = StringField("Primer apellido", filters=[strip_spaces], validators=[
         DataRequired("Escribe tu primer apellido."),
         Length(max=25, message="Máximo 25 caracteres."),
     ])
-    segundo_apellido = StringField("Segundo apellido", filters=[quitar_espacios], validators=[
+    second_last_name = StringField("Segundo apellido", filters=[strip_spaces], validators=[
         Optional(),
         Length(max=25, message="Máximo 25 caracteres."),
     ])
-    correo = EmailField("Correo institucional", filters=[quitar_espacios, minusculas], validators=[
+    email = EmailField("Correo institucional", filters=[strip_spaces, lowercase], validators=[
         DataRequired("Escribe tu correo."),
         Length(max=100, message="Máximo 100 caracteres."),
         Email("Ingresa un correo válido."),
     ])
-    # Las opciones de carrera se cargan desde la base en el controlador
-    carrera = SelectField("Carrera", coerce=entero_o_none, validate_choice=False, validators=[
+    # Las opciones se cargan desde la base en el controlador
+    major = SelectField("Carrera", coerce=int_or_none, validate_choice=False, validators=[
         DataRequired("Elige tu carrera."),
     ])
-    semestre = SelectField("Semestre", coerce=entero_o_none, validate_choice=False,
+    semester = SelectField("Semestre", coerce=int_or_none, validate_choice=False,
                            choices=[(n, str(n)) for n in range(1, 11)], validators=[
         DataRequired("Elige tu semestre."),
         NumberRange(1, 10, message="Elige un semestre del 1 al 10."),
@@ -68,29 +68,28 @@ class RegistroForm(FlaskForm):
         DataRequired("Escribe una contraseña."),
         Length(min=8, message="Mínimo 8 caracteres."),
     ])
-    password2 = PasswordField("Confirmar contraseña", validators=[
+    confirm_password = PasswordField("Confirmar contraseña", validators=[
         DataRequired("Repite tu contraseña."),
         EqualTo("password", message="Las contraseñas no coinciden."),
     ])
 
-    # WTForms ejecuta solo los métodos validate_<campo>, después de los validadores de arriba.
-    # Aquí van las reglas que necesitan consultar la base de datos.
+    # Reglas que consultan la base (WTForms ejecuta cada método validate_<campo>)
 
-    def validate_usuario(self, campo):
-        if Usuario.query.filter_by(nombreUsuario=campo.data).first():
+    def validate_username(self, field):
+        if User.query.filter_by(username=field.data).first():
             raise ValidationError("Ese nombre de usuario ya está en uso.")
 
-    def validate_correo(self, campo):
-        if Usuario.query.filter_by(emailUsuario=campo.data).first():
+    def validate_email(self, field):
+        if User.query.filter_by(email=field.data).first():
             raise ValidationError("Ya existe una cuenta con ese correo.")
 
-    def validate_carrera(self, campo):
-        if db.session.get(Carrera, campo.data) is None:
+    def validate_major(self, field):
+        if db.session.get(Major, field.data) is None:
             raise ValidationError("Elige una carrera de la lista.")
 
 
 class LoginForm(FlaskForm):
-    correo = StringField("Correo o nombre de usuario", filters=[quitar_espacios], validators=[
+    identifier = StringField("Correo o nombre de usuario", filters=[strip_spaces], validators=[
         DataRequired("Escribe tu correo o nombre de usuario."),
     ])
     password = PasswordField("Contraseña", validators=[
@@ -98,46 +97,40 @@ class LoginForm(FlaskForm):
     ])
 
 
-class PerfilForm(RegistroForm):
-    """Editar el perfil: los mismos datos del registro, pero sin contraseña."""
+class ProfileForm(RegisterForm):
+    """Mismos datos del registro, con cambio de contraseña opcional."""
 
-    # En WTForms, poner un campo en None lo quita del formulario heredado
+    # Poner un campo en None lo quita del formulario heredado
     password = None
-    password2 = None
-    
-    password_actual = PasswordField("Contraseña actual")
-    password_nueva = PasswordField("Nueva contraseña", validators=[
+    confirm_password = None
+
+    current_password = PasswordField("Contraseña actual")
+    new_password = PasswordField("Nueva contraseña", validators=[
         Optional(),
         Length(min=8, message="Mínimo 8 caracteres."),
     ])
-    password_nueva2 = PasswordField("Confirmar nueva contraseña", validators=[
-        EqualTo("password_nueva", message="Las contraseñas no coinciden."),
+    confirm_new_password = PasswordField("Confirmar nueva contraseña", validators=[
+        EqualTo("new_password", message="Las contraseñas no coinciden."),
     ])
 
-    # Mismas reglas del registro, pero ignorando a la propia persona:
-    # si no cambia su alias o su correo, no debe salir "ya está en uso".
+    # Mismas reglas de unicidad, sin contar al usuario actual
 
-    def validate_usuario(self, campo):
-        otro = Usuario.query.filter(
-            Usuario.nombreUsuario == campo.data,
-            Usuario.idUsuario != current_user.idUsuario,
-        ).first()
-        if otro:
+    def validate_username(self, field):
+        taken = User.query.filter(User.username == field.data, User.id != current_user.id).first()
+        if taken:
             raise ValidationError("Ese nombre de usuario ya está en uso.")
 
-    def validate_correo(self, campo):
-        otro = Usuario.query.filter(
-            Usuario.emailUsuario == campo.data,
-            Usuario.idUsuario != current_user.idUsuario,
-        ).first()
-        if otro:
+    def validate_email(self, field):
+        taken = User.query.filter(User.email == field.data, User.id != current_user.id).first()
+        if taken:
             raise ValidationError("Ya existe una cuenta con ese correo.")
-    
-    def validate_password_actual(self, campo):
-        # Solo importa si escribió una contraseña nueva
-        if self.password_nueva.data:
-            if not campo.data or not check_password_hash(current_user.passwordUsuario, campo.data):
+
+    def validate_current_password(self, field):
+        # Solo se pide si escribió una contraseña nueva
+        if self.new_password.data:
+            if not field.data or not check_password_hash(current_user.password_hash, field.data):
                 raise ValidationError("La contraseña actual no es correcta.")
-            
-class EliminarCuentaForm(FlaskForm):
-    """Sin campos: solo sirve para llevar el token CSRF del botón de eliminar cuenta."""
+
+
+class DeleteAccountForm(FlaskForm):
+    """Sin campos: solo lleva el token CSRF del botón de eliminar."""
