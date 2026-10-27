@@ -1,7 +1,11 @@
 # Lo que las pantallas de Sebastián esperan de Camilo
 
-Las plantillas ya están hechas. Para que funcionen, el servidor tiene que darles estos datos.
-Las direcciones de los botones están escritas tal cual (no usan `url_for`), así que no importa cómo se llamen los blueprints.
+**Estado: ya conectado.** Todo lo de esta lista está hecho en el servidor y probado.
+
+Cambios al conectarlo:
+- Las direcciones de las plantillas ahora usan `url_for` (por ejemplo `url_for('admin.users')`), para que no se rompan si una ruta cambia.
+- La lista de roles del panel sale de la tabla `roles` (variable `roles`), en lugar de estar escrita en el HTML.
+- El macro `actions` de `_projects.html` recibe `"admin"` o `"projects"` en lugar de la dirección.
 
 ## Formularios (forms.py)
 - `RegisterForm`: campos `id_number`, `faculty` (SelectField con las facultades) y `major`. `major` no necesita opciones: las carga el JavaScript.
