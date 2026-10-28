@@ -10,7 +10,7 @@ def register_commands(app):
     @click.argument("username")
     def create_admin(username):
         """Convierte en administrador a un usuario ya registrado."""
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(username=username.lower()).first()
         if user is None:
             raise click.ClickException(f"No existe el usuario @{username}. Primero regístrate en la página.")
 

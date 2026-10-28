@@ -49,9 +49,10 @@ def login():
 
     if form.validate_on_submit():
         # Se puede entrar con el correo o con el nombre de usuario
-        identifier = form.identifier.data
+        # El correo y el nombre de usuario se guardan en minúsculas
+        identifier = form.identifier.data.lower()
         user = User.query.filter(
-            (User.email == identifier.lower()) | (User.username == identifier)
+            (User.email == identifier) | (User.username == identifier)
         ).first()
 
         if user and check_password_hash(user.password_hash, form.password.data):

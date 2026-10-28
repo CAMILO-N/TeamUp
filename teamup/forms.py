@@ -42,7 +42,8 @@ class UserDataForm(FlaskForm):
     # En el perfil no cuenta el propio usuario al revisar si el alias o el correo ya están en uso
     ignore_current_user = False
 
-    username = StringField("Nombre de usuario", filters=[strip_spaces], validators=[
+    # En minúsculas para que "Camilo_N" y "camilo_n" sean el mismo usuario en cualquier base
+    username = StringField("Nombre de usuario", filters=[strip_spaces, lowercase], validators=[
         DataRequired("Escribe un nombre de usuario."),
         Regexp(r"^[A-Za-z0-9_.]{3,25}$", message="De 3 a 25 caracteres: letras, números, punto o guion bajo."),
     ])
