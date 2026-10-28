@@ -24,7 +24,7 @@ Conecta con todos los estudiantes de tu campus, encuentra el talento que tu idea
 - [Funcionalidades](#funcionalidades)
 - [Estado del proyecto](#estado-del-proyecto)
 - [Demostración](#demostración)
-- [Acceso al proyecto](#acceso-al-proyecto)
+- [Estructura](#estructura)
 - [Tecnologías utilizadas](#tecnologías-utilizadas)
 - [Prototipo y arte](#prototipo-y-arte)
 - [Personas desarrolladoras](#personas-desarrolladoras)
@@ -90,55 +90,7 @@ El proyecto está **en desarrollo**.
 <!-- Agregar aquí el enlace al video (Loom o YouTube) cuando esté grabado -->
 El video con la demostración del registro, el inicio de sesión y las rutas protegidas se publicará en esta sección.
 
-## Acceso al proyecto
-
-### Requisitos
-
-- [Python 3.14](https://www.python.org/downloads/) (marcar *Add python.exe to PATH* al instalar)
-- Una base de datos, cualquiera de estas dos:
-  - **PostgreSQL** (por ejemplo, una base gratis en [Neon](https://neon.tech)), o
-  - **SQL Server** local con Autenticación de Windows y el [ODBC Driver 17 for SQL Server](https://learn.microsoft.com/sql/connect/odbc/download-odbc-driver-for-sql-server)
-
-### Abrir y ejecutar el proyecto
-
-1. Clonar el repositorio:
-
-   ```powershell
-   git clone https://github.com/CAMILO-N/TeamUp.git
-   cd TeamUp
-   ```
-
-2. Preparar la base de datos (las tablas, facultades, carreras y roles se crean solos al arrancar):
-
-   - **Con PostgreSQL:** crear un archivo `.env` en la carpeta `TeamUp` con la dirección de la base:
-
-     ```
-     DATABASE_URL=postgresql://usuario:contraseña@servidor/base?sslmode=require
-     ```
-
-   - **Con SQL Server:** no crear el `.env` y crear la base vacía:
-
-     ```sql
-     CREATE DATABASE TeamUp;
-     ```
-
-3. Crear y activar el entorno virtual, e instalar las dependencias:
-
-   ```powershell
-   python -m venv venv
-   .\venv\Scripts\Activate.ps1
-   pip install -r requirements.txt
-   ```
-
-4. Arrancar la aplicación:
-
-   ```powershell
-   python run.py
-   ```
-
-5. Abrir [http://localhost](http://localhost) en el navegador.
-
-### Estructura
+## Estructura
 
 El proyecto sigue el patrón **MVC** con Flask:
 
