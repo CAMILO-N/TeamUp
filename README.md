@@ -8,7 +8,8 @@ Conecta con todos los estudiantes de tu campus, encuentra el talento que tu idea
 
 ![Python](https://img.shields.io/badge/Python-3.14-1F1D1B?style=for-the-badge&logo=python&logoColor=F2B33D)
 ![Flask](https://img.shields.io/badge/Flask-3.1-1F1D1B?style=for-the-badge&logo=flask&logoColor=E4572E)
-![SQL Server](https://img.shields.io/badge/SQL%20Server-1F1D1B?style=for-the-badge&logo=microsoftsqlserver&logoColor=F2B33D)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-1F1D1B?style=for-the-badge&logo=postgresql&logoColor=F2B33D)
+![Vercel](https://img.shields.io/badge/Vercel-1F1D1B?style=for-the-badge&logo=vercel&logoColor=E4572E)
 ![Estado](https://img.shields.io/badge/estado-en%20desarrollo-E4572E?style=for-the-badge)
 
 </div>
@@ -75,11 +76,14 @@ El proyecto está **en desarrollo**.
 | Funcionalidad | Estado |
 |---|---|
 | Página de inicio (landing) | Terminado |
-| Registro con validaciones (alias, nombres, correo, carrera y semestre) | Terminado |
+| Registro con validaciones en el servidor (cédula ecuatoriana, correo institucional, facultad y carrera) | Terminado |
 | Inicio y cierre de sesión | Terminado |
 | Rutas protegidas: sin sesión redirigen al login | Terminado |
-| Publicar, ver, editar y eliminar proyectos | En desarrollo |
-| Explorar, postulaciones, perfil y vitrina | Pendiente |
+| Perfil: editar datos y eliminar la cuenta | Terminado |
+| Panel de administración: roles, cuentas y proyectos | Terminado |
+| Publicar proyectos y verlos en Explorar | Terminado |
+| Postulaciones, equipos y vitrina | Pendiente |
+| Página publicada en internet | En desarrollo |
 
 ## Demostración
 
@@ -91,8 +95,9 @@ El video con la demostración del registro, el inicio de sesión y las rutas pro
 ### Requisitos
 
 - [Python 3.14](https://www.python.org/downloads/) (marcar *Add python.exe to PATH* al instalar)
-- [SQL Server](https://www.microsoft.com/sql-server/sql-server-downloads) con Autenticación de Windows
-- [ODBC Driver 17 for SQL Server](https://learn.microsoft.com/sql/connect/odbc/download-odbc-driver-for-sql-server)
+- Una base de datos, cualquiera de estas dos:
+  - **PostgreSQL** (por ejemplo, una base gratis en [Neon](https://neon.tech)), o
+  - **SQL Server** local con Autenticación de Windows y el [ODBC Driver 17 for SQL Server](https://learn.microsoft.com/sql/connect/odbc/download-odbc-driver-for-sql-server)
 
 ### Abrir y ejecutar el proyecto
 
@@ -103,11 +108,19 @@ El video con la demostración del registro, el inicio de sesión y las rutas pro
    cd TeamUp
    ```
 
-2. Crear la base de datos vacía en SQL Server (las tablas y las carreras se crean solas al arrancar):
+2. Preparar la base de datos (las tablas, facultades, carreras y roles se crean solos al arrancar):
 
-   ```sql
-   CREATE DATABASE TeamUp;
-   ```
+   - **Con PostgreSQL:** crear un archivo `.env` en la carpeta `TeamUp` con la dirección de la base:
+
+     ```
+     DATABASE_URL=postgresql://usuario:contraseña@servidor/base?sslmode=require
+     ```
+
+   - **Con SQL Server:** no crear el `.env` y crear la base vacía:
+
+     ```sql
+     CREATE DATABASE TeamUp;
+     ```
 
 3. Crear y activar el entorno virtual, e instalar las dependencias:
 
@@ -131,7 +144,8 @@ El proyecto sigue el patrón **MVC** con Flask:
 
 ```
 TeamUp/
-├── run.py              punto de entrada
+├── run.py              punto de entrada en la computadora
+├── api/index.py        punto de entrada en Vercel
 ├── requirements.txt    dependencias
 └── teamup/
     ├── models/         Modelo: clases que representan las tablas (SQLAlchemy)
@@ -148,7 +162,9 @@ TeamUp/
 | **Python 3.14** | Lenguaje del backend |
 | **Flask** | Framework web, con patrón MVC y Blueprints |
 | **Flask-SQLAlchemy** | ORM: las tablas se manejan como clases de Python |
-| **SQL Server** + **pyodbc** | Base de datos y conexión |
+| **PostgreSQL** (Neon) + **psycopg** | Base de datos de la página publicada |
+| **SQL Server** + **pyodbc** | Base de datos local (opcional) |
+| **Vercel** | Publicación de la página, conectada a GitHub |
 | **Flask-Login** | Sesiones de usuario y protección de rutas |
 | **Flask-WTF** | Formularios, validaciones y protección CSRF |
 | **Werkzeug** | Hash de contraseñas |

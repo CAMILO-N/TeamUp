@@ -1,0 +1,183 @@
+/* Página de perfil (usa los colores de styles.css) */
+.profile {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 16px 32px 80px;
+}
+
+.profile__title {
+    font-size: 2.6rem;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin: 12px 0 4px;
+}
+
+.profile__subtitle { color: var(--gray); margin-bottom: 28px; }
+
+.profile__back { color: var(--gray); font-size: 0.9rem; }
+.profile__back:hover { color: var(--bone); }
+
+.profile__actions { margin: 8px 0 40px; }
+
+/* Tarjetas del perfil */
+.profile-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 28px;
+    margin-bottom: 20px;
+}
+
+.profile-card__title {
+    font-size: 1.2rem;
+    margin-bottom: 18px;
+}
+
+.profile-card__note { color: var(--gray); font-size: 0.9rem; line-height: 1.5; margin: -8px 0 18px; }
+
+.profile-card--danger { border-color: var(--brick); background: rgba(196, 64, 42, 0.08); }
+.profile-card--danger .profile-card__title { color: #ffb4a3; }
+
+/* Campos del formulario */
+.field { margin-bottom: 16px; }
+
+.field__label {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--ochre);
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.field__input {
+    width: 100%;
+    padding: 12px 18px;
+    font: inherit;
+    color: var(--bone);
+    background: var(--charcoal);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.field__input::placeholder { color: #6e6a66; }
+
+.field__input:focus {
+    border-color: var(--coral);
+    box-shadow: 0 0 0 3px rgba(228, 87, 46, 0.25);
+}
+
+.field__input--select {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--gray) 50%),
+                      linear-gradient(135deg, var(--gray) 50%, transparent 50%);
+    background-position: calc(100% - 22px) 50%, calc(100% - 16px) 50%;
+    background-size: 6px 6px;
+    background-repeat: no-repeat;
+}
+
+.field__input option { background: var(--surface); color: var(--bone); }
+
+.field__input--select { padding-right: 40px; text-overflow: ellipsis; }
+
+.field__input--select:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Dato que se muestra pero no se puede cambiar (la cédula) */
+.field__input--locked {
+    color: var(--gray);
+    background: transparent;
+    border-style: dashed;
+    cursor: not-allowed;
+}
+
+/* Texto largo */
+.field__input--textarea {
+    border-radius: 24px;
+    min-height: 140px;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+.field__input--invalid { border-color: var(--brick); }
+
+.field__error {
+    display: block;
+    margin: 6px 0 0 18px;
+    font-size: 0.8rem;
+    color: #ffb4a3;
+}
+
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+/* Carrera (nombres largos) más ancha que el semestre */
+.row--wide-first { grid-template-columns: 2fr 1fr; }
+
+.hint { display: block; margin: 6px 0 0 18px; font-size: 0.78rem; color: var(--gray); }
+
+/* Avisos */
+.notice, .error--visible {
+    margin-bottom: 20px;
+    padding: 12px 18px;
+    border-radius: 16px;
+    font-size: 0.92rem;
+}
+
+.notice--success {
+    color: var(--ochre);
+    background: rgba(242, 179, 61, 0.1);
+    border: 1px solid rgba(242, 179, 61, 0.45);
+}
+
+.notice--error, .error--visible {
+    color: #ffb4a3;
+    background: rgba(228, 87, 46, 0.12);
+    border: 1px solid var(--brick);
+}
+
+/* Botones (un <button> no hereda la fuente por defecto) */
+.btn {
+    font: inherit;
+    font-weight: 600;
+    color: var(--bone);
+    cursor: pointer;
+    border: 0;
+    transition: background .15s, transform .1s;
+}
+.btn:active { transform: scale(0.98); }
+.btn--secondary { border: 1px solid var(--border); }
+.btn--primary:hover { background: var(--brick); }
+
+.btn--danger {
+    background: var(--brick);
+    color: var(--bone);
+}
+.btn--danger:hover { background: #a93522; }
+
+/* Ventana para confirmar la eliminación */
+.dialog {
+    margin: auto;
+    width: min(460px, calc(100% - 32px));
+    padding: 32px 28px;
+    color: var(--bone);
+    background: var(--surface);
+    border: 1px solid var(--brick);
+    border-radius: 28px;
+    box-shadow: 0 0 60px rgba(196, 64, 42, 0.35);
+}
+
+.dialog::backdrop { background: rgba(23, 22, 26, 0.8); }
+
+.dialog__title { font-size: 1.4rem; margin-bottom: 12px; }
+.dialog__text { color: var(--gray); line-height: 1.6; margin-bottom: 24px; }
+.dialog__emphasis { color: #ffb4a3; }
+
+.dialog__actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; }
+
+/* Pantallas pequeñas */
+@media (max-width: 560px) {
+    .profile { padding: 8px 16px 64px; }
+    .row, .row--wide-first { grid-template-columns: 1fr; }
+    .profile-card { padding: 22px 18px; }
+    .navbar__link--user { display: none; }
+    .dialog__btn { width: 100%; text-align: center; }
+}

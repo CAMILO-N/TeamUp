@@ -1,0 +1,72 @@
+{# Explorar. Espera (todo opcional hasta que Camilo lo conecte):
+   projects     proyectos visibles de todo el campus
+   my_projects  proyectos del usuario, también los ocultos (para que los gestione)
+   csrf_form    formulario vacío para los botones
+   Un proyecto debe tener: id, title, description, is_hidden, owner (con .username) #}
+{% from "_projects.html" import status_badge, actions, card %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorar · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main>
+        <section class="explore">
+            <div class="explore__head">
+                <div>
+                    <h1 class="explore__title">Hola, <span class="highlight">{{ current_user.first_name }}</span>.</h1>
+                    <p class="explore__text">Aquí vas a encontrar los proyectos de tu campus.</p>
+                </div>
+                <a href="{{ url_for('projects.new') }}" class="btn btn--primary"><span class="btn__arrow">+</span> Nuevo proyecto</a>
+            </div>
+
+            {% include "_flash.html" %}
+
+            {% if my_projects %}
+            <h2 class="section-title">Mis proyectos</h2>
+            <div class="projects">
+                {% for p in my_projects %}
+                {% call card(p, false) %}
+                <div class="project-card__footer">
+                    {{ status_badge(p) }}
+                    {{ actions(p, "projects", csrf_form) }}
+                </div>
+                {% endcall %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <h2 class="section-title">Proyectos del campus</h2>
+            {% if projects %}
+            <div class="projects">
+                {% for p in projects %}
+                {{ card(p) }}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty">
+                <p class="empty__title">Todavía no hay proyectos</p>
+                <p class="empty__text">Sé el primero en publicar una idea para tu campus.</p>
+                <a href="{{ url_for('projects.new') }}" class="btn btn--secondary">Crear un proyecto</a>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+
+    {% if my_projects %}
+        {% include "_delete_dialog.html" %}
+        <script src="{{ url_for('static', filename='js/confirm-delete.js') }}"></script>
+    {% endif %}
+
+</body>
+</html>
