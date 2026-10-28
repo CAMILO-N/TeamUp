@@ -11,6 +11,7 @@ Conecta con todos los estudiantes de tu campus, encuentra el talento que tu idea
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-1F1D1B?style=for-the-badge&logo=postgresql&logoColor=F2B33D)
 ![Vercel](https://img.shields.io/badge/Vercel-1F1D1B?style=for-the-badge&logo=vercel&logoColor=E4572E)
 ![Estado](https://img.shields.io/badge/estado-en%20desarrollo-E4572E?style=for-the-badge)
+![Link](https://team-up-red.vercel.app/explore)
 
 </div>
 
