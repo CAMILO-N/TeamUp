@@ -118,7 +118,6 @@ TeamUp/
 | **Vercel** | Publicación de la página, conectada a GitHub |
 | **Flask-Login** | Sesiones de usuario y protección de rutas |
 | **Flask-WTF** | Formularios, validaciones y protección CSRF |
-| **Werkzeug** | Hash de contraseñas |
 | **HTML, CSS y Jinja** | Vistas |
 | **Figma** | Diseño y prototipo |
 
