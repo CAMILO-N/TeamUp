@@ -28,7 +28,6 @@ Conecta con todos los estudiantes de tu campus, encuentra el talento que tu idea
 - [Tecnologías utilizadas](#tecnologías-utilizadas)
 - [Prototipo y arte](#prototipo-y-arte)
 - [Personas desarrolladoras](#personas-desarrolladoras)
-- [Licencia](#licencia)
 
 ## Qué es TeamUp
 
@@ -133,10 +132,6 @@ El diseño de la plataforma, la identidad visual y el prototipo navegable están
 
 | [<img src="https://github.com/CAMILO-N.png" width="115" alt="Foto de perfil de Camilo"><br><sub>Camilo Núñez</sub>](https://github.com/CAMILO-N) | [<img src="https://github.com/SebastianR18.png" width="115" alt="Foto de perfil de Sebastián"><br><sub>Sebastián</sub>](https://github.com/SebastianR18) |
 | :---: | :---: |
-
-## Licencia
-
-Proyecto académico desarrollado para la materia **Ingeniería Web**. No tiene licencia de código abierto.
 
 ---
 
