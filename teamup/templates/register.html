@@ -24,16 +24,11 @@
             <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
                 {{ csrf(form) }}
 
-                {{ input_field(form.username, "Ej. camilo_n", "username") }}
+                {{ input_field(form.username, "Ej. user_name", "username") }}
 
                 <div class="row">
                     {{ input_field(form.first_name, "Primer nombre", "given-name") }}
-                    {{ input_field(form.middle_name, "Opcional", "additional-name") }}
-                </div>
-
-                <div class="row">
                     {{ input_field(form.last_name, "Primer apellido", "family-name") }}
-                    {{ input_field(form.second_last_name, "Opcional") }}
                 </div>
 
                 {{ input_field(form.email, "tu.nombre@universidad.edu.ec", "email") }}
