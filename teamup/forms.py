@@ -36,7 +36,12 @@ def int_or_none(value):
         return None
 
 
-class RegisterForm(FlaskForm):
+class UserDataForm(FlaskForm):
+    """Datos que comparten el registro y el perfil. Los hijos solo agregan campos, nunca quitan."""
+
+    # En el perfil no cuenta el propio usuario al revisar si el alias o el correo ya están en uso
+    ignore_current_user = False
+
     username = StringField("Nombre de usuario", filters=[strip_spaces], validators=[
         DataRequired("Escribe un nombre de usuario."),
         Regexp(r"^[A-Za-z0-9_.]{3,25}$", message="De 3 a 25 caracteres: letras, números, punto o guion bajo."),
@@ -45,21 +50,9 @@ class RegisterForm(FlaskForm):
         DataRequired("Escribe tu primer nombre."),
         Length(max=25, message="Máximo 25 caracteres."),
     ])
-    middle_name = StringField("Segundo nombre", filters=[strip_spaces], validators=[
-        Optional(),
-        Length(max=25, message="Máximo 25 caracteres."),
-    ])
     last_name = StringField("Primer apellido", filters=[strip_spaces], validators=[
         DataRequired("Escribe tu primer apellido."),
         Length(max=25, message="Máximo 25 caracteres."),
-    ])
-    second_last_name = StringField("Segundo apellido", filters=[strip_spaces], validators=[
-        Optional(),
-        Length(max=25, message="Máximo 25 caracteres."),
-    ])
-    id_number = StringField("Cédula", filters=[remove_separators], validators=[
-        DataRequired("Escribe tu cédula."),
-        EcuadorianIdNumber(),
     ])
     email = EmailField("Correo institucional", filters=[strip_spaces, lowercase], validators=[
         DataRequired("Escribe tu correo."),
@@ -79,28 +72,22 @@ class RegisterForm(FlaskForm):
         DataRequired("Elige tu semestre."),
         NumberRange(1, 10, message="Elige un semestre del 1 al 10."),
     ])
-    password = PasswordField("Contraseña", validators=[
-        DataRequired("Escribe una contraseña."),
-        Length(min=8, message="Mínimo 8 caracteres."),
-    ])
-    confirm_password = PasswordField("Confirmar contraseña", validators=[
-        DataRequired("Repite tu contraseña."),
-        EqualTo("password", message="Las contraseñas no coinciden."),
-    ])
 
     # Reglas que consultan la base (WTForms ejecuta cada método validate_<campo>)
 
+    def _is_taken(self, column, value):
+        query = User.query.filter(column == value)
+        if self.ignore_current_user:
+            query = query.filter(User.id != current_user.id)
+        return query.first() is not None
+
     def validate_username(self, field):
-        if User.query.filter_by(username=field.data).first():
+        if self._is_taken(User.username, field.data):
             raise ValidationError("Ese nombre de usuario ya está en uso.")
 
     def validate_email(self, field):
-        if User.query.filter_by(email=field.data).first():
+        if self._is_taken(User.email, field.data):
             raise ValidationError("Ya existe una cuenta con ese correo.")
-
-    def validate_id_number(self, field):
-        if User.query.filter_by(id_number=field.data).first():
-            raise ValidationError("Ya existe una cuenta con esa cédula.")
 
     def validate_faculty(self, field):
         if db.session.get(Faculty, field.data) is None:
@@ -113,6 +100,27 @@ class RegisterForm(FlaskForm):
             raise ValidationError("Elige una carrera de tu facultad.")
 
 
+class RegisterForm(UserDataForm):
+    """Registro: solo lo necesario. El segundo nombre y apellido se completan en el perfil."""
+
+    id_number = StringField("Cédula", filters=[remove_separators], validators=[
+        DataRequired("Escribe tu cédula."),
+        EcuadorianIdNumber(),
+    ])
+    password = PasswordField("Contraseña", validators=[
+        DataRequired("Escribe una contraseña."),
+        Length(min=8, message="Mínimo 8 caracteres."),
+    ])
+    confirm_password = PasswordField("Confirmar contraseña", validators=[
+        DataRequired("Repite tu contraseña."),
+        EqualTo("password", message="Las contraseñas no coinciden."),
+    ])
+
+    def validate_id_number(self, field):
+        if self._is_taken(User.id_number, field.data):
+            raise ValidationError("Ya existe una cuenta con esa cédula.")
+
+
 class LoginForm(FlaskForm):
     identifier = StringField("Correo o nombre de usuario", filters=[strip_spaces], validators=[
         DataRequired("Escribe tu correo o nombre de usuario."),
@@ -122,15 +130,19 @@ class LoginForm(FlaskForm):
     ])
 
 
-class ProfileForm(RegisterForm):
-    """Mismos datos del registro, con cambio de contraseña opcional."""
+class ProfileForm(UserDataForm):
+    """Perfil: los datos del registro más los opcionales y el cambio de contraseña. La cédula no se edita."""
 
-    # Poner un campo en None lo quita del formulario heredado.
-    # La cédula no se puede cambiar desde el perfil.
-    id_number = None
-    password = None
-    confirm_password = None
+    ignore_current_user = True
 
+    middle_name = StringField("Segundo nombre", filters=[strip_spaces], validators=[
+        Optional(),
+        Length(max=25, message="Máximo 25 caracteres."),
+    ])
+    second_last_name = StringField("Segundo apellido", filters=[strip_spaces], validators=[
+        Optional(),
+        Length(max=25, message="Máximo 25 caracteres."),
+    ])
     current_password = PasswordField("Contraseña actual")
     new_password = PasswordField("Nueva contraseña", validators=[
         Optional(),
@@ -139,18 +151,6 @@ class ProfileForm(RegisterForm):
     confirm_new_password = PasswordField("Confirmar nueva contraseña", validators=[
         EqualTo("new_password", message="Las contraseñas no coinciden."),
     ])
-
-    # Mismas reglas de unicidad, sin contar al usuario actual
-
-    def validate_username(self, field):
-        taken = User.query.filter(User.username == field.data, User.id != current_user.id).first()
-        if taken:
-            raise ValidationError("Ese nombre de usuario ya está en uso.")
-
-    def validate_email(self, field):
-        taken = User.query.filter(User.email == field.data, User.id != current_user.id).first()
-        if taken:
-            raise ValidationError("Ya existe una cuenta con ese correo.")
 
     def validate_current_password(self, field):
         # Solo se pide si escribió una contraseña nueva

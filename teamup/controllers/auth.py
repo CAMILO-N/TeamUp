@@ -23,9 +23,7 @@ def register():
         new_user = User(
             username=form.username.data,
             first_name=form.first_name.data,
-            middle_name=form.middle_name.data or None,
             last_name=form.last_name.data,
-            second_last_name=form.second_last_name.data or None,
             email=form.email.data,
             id_number=form.id_number.data,
             password_hash=generate_password_hash(form.password.data),
