@@ -1,5 +1,7 @@
 # Plan del core (para la presentación)
 
+> **Este archivo vive solo en `stage` (y en las ramas personales), nunca en `main`.** Ver "Este archivo no va a main" al final.
+>
 > **Estado: propuesta para discutir.** Sale de los apuntes de Camilo y Sebastián. Nada de esto está programado todavía. Lo ya decidido está en "Decisiones tomadas"; lo pendiente, en "Preguntas abiertas".
 
 ## Qué es "el core"
@@ -188,3 +190,50 @@ fix(auth): corrige el login con mayusculas - CN
 
 1. **Para Sebastián:** ¿hace las notificaciones?
 2. **Para Sebastián:** ¿cómo pasa un proyecto reportado a la cola de validación del admin?
+
+## Convenciones de código
+
+Reglas para todo lo que se escriba en el repo, a mano o con ayuda de un asistente.
+
+**Idioma**
+- **Código en inglés:** archivos, clases, funciones, variables, tablas, columnas, rutas (`/explore`, `/profile`), clases CSS e ids de HTML. Python en `snake_case`.
+- **Lo que ve el usuario en español:** textos de las plantillas, etiquetas, mensajes de error de los formularios y `flash()`.
+- **Comentarios en español,** cortos y en texto simple, solo cuando aportan algo. En CSS, una etiqueta simple por sección (`/* Botones */`), sin líneas decorativas (`/* ===== */`).
+- En los textos generales (README, documentos, textos de la página) se habla de "tu campus" o "tu universidad", sin nombrar la universidad.
+
+**Estructura (MVC con Flask)**
+- `teamup/models/`: un archivo por tabla. Los datos iniciales (como facultades o categorías) se cargan con el evento `after_create`.
+- `teamup/controllers/`: un Blueprint por área, solo con rutas. Reciben la petición, usan formularios y modelos, y responden.
+- `teamup/forms.py`: los formularios (WTForms). Las reglas que consultan la base van en métodos `validate_<campo>`.
+- `teamup/validators.py`: validadores que se reutilizan en varios formularios.
+- `teamup/permissions.py`: permisos por rol (`@role_required`).
+- `teamup/templates/`: plantillas Jinja. Las piezas repetidas van en macros (`_fields.html`, `_projects.html`).
+
+**Reglas**
+- **Toda validación se hace en el servidor.** Los formularios llevan `novalidate`; nunca se confía en lo que valida el navegador.
+- **Nada de JavaScript nuevo.** Lo nuevo se resuelve con formularios que se envían a Flask. Solo se mantienen los dos archivos que ya existen (`faculty-major.js` y `confirm-delete.js`).
+- **En las plantillas, las direcciones siempre van con `url_for`,** nunca escritas a mano.
+- **Clases CSS con BEM:** `bloque__elemento--modificador` (por ejemplo `project-card__title`, `btn--primary`). Cada elemento con estilo lleva su clase; no se usan selectores por etiqueta como `.hero h1`.
+- **Los botones sueltos** (ocultar, borrar, aceptar…) van en un `<form method="POST">` con el token CSRF de `ActionForm`.
+- **Los permisos se revisan en el servidor:** ocultar un botón no basta. Si no tiene permiso, `abort(403)`.
+- **Cambios en la base con Flask-Migrate,** nunca borrando tablas (cuando esté configurado).
+- **Nombre de usuario y correo** se guardan en minúsculas (PostgreSQL distingue mayúsculas).
+- **Los commits** siguen el formato de "Cómo escribimos los commits" y no llevan líneas de coautoría.
+
+**Ramas**
+- Cada uno trabaja en la suya (`devCamilo`, `devSebas`). Antes de empezar: `git merge origin/stage`.
+- Lo que funciona pasa a `stage`; cuando `stage` está probado, pasa a `main`.
+
+## Este archivo no va a main
+
+`main` es lo que se entrega y se publica. Este plan es interno, así que se queda en `stage`. Al pasar `stage` a `main`, se quita en el mismo merge:
+
+```powershell
+git switch main
+git merge --no-ff --no-commit stage
+git rm -f --ignore-unmatch anexos/CORE.md
+git commit -m "Merge branch 'stage'"
+```
+
+- Funciona igual si Git avisa de un conflicto con `anexos/CORE.md`: el `git rm` lo resuelve.
+- **Nunca traer `main` hacia `stage`** (ni a las ramas personales): traería también el borrado y `CORE.md` desaparecería de `stage`. Lo nuevo siempre va de `stage` a `main`, no al revés.
