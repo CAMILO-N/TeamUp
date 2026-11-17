@@ -1,0 +1,55 @@
+{# Paso 4: vista previa. En un borrador, publica; en uno publicado, sirve para editar cada parte. #}
+{% from "_fields.html" import csrf_input %}
+{% from "_project_steps.html" import wizard, eyebrow %}
+{% from "_projects.html" import sections, status_badge %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vista previa · {{ project.title }} · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/projects.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main class="profile">
+        <a href="{{ url_for('main.explore') }}" class="profile__back">&larr; Volver a Explorar</a>
+        <div class="detail__badges">
+            {{ status_badge(project) }}
+            {% if project.category %}<span class="chip-tag">{{ project.category.name }}</span>{% endif %}
+        </div>
+        <h1 class="profile__title">{{ project.title }}</h1>
+        <p class="profile__subtitle">{{ 'Revisa que todo esté bien antes de publicar.' if project.is_draft else 'Así ven tu proyecto los demás. Edita la parte que quieras.' }}</p>
+
+        {{ wizard(project, "preview") }}
+        {% include "_flash.html" %}
+
+        {% if missing %}
+        <div class="notice notice--error">Antes de publicar falta: {{ missing|join(', ') }}.</div>
+        {% endif %}
+
+        {{ eyebrow(4) }}
+        {{ sections(project, edit=true) }}
+
+        <div class="profile__actions form-actions">
+            <a href="{{ url_for('projects.dates', project_id=project.id) }}" class="btn btn--secondary">&larr; Atrás</a>
+            {% if project.is_draft %}
+            <form method="POST" action="{{ url_for('projects.publish', project_id=project.id) }}">
+                {{ csrf_input(csrf_form) }}
+                <button type="submit" class="btn btn--primary"{% if missing %} disabled{% endif %}>Publicar proyecto</button>
+            </form>
+            {% else %}
+            <a href="{{ url_for('projects.detail', project_id=project.id) }}" class="btn btn--primary">Ver el proyecto</a>
+            {% endif %}
+        </div>
+    </main>
+
+</body>
+</html>

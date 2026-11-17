@@ -1,0 +1,50 @@
+{# Detalle de un proyecto. Lo ve cualquiera si está publicado; un borrador u oculto, solo su dueño y el admin. #}
+{% from "_projects.html" import sections, status_badge %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project.title }} · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/projects.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main class="profile">
+        <a href="{{ url_for('main.explore') }}" class="profile__back">&larr; Volver a Explorar</a>
+        <div class="detail__badges">
+            {% if not project.is_public or is_owner %}{{ status_badge(project) }}{% endif %}
+            {% if project.category %}<span class="chip-tag">{{ project.category.name }}</span>{% endif %}
+        </div>
+        <h1 class="profile__title">{{ project.title }}</h1>
+        <p class="profile__subtitle">por <span class="highlight">@{{ project.owner.username }}</span></p>
+
+        {% include "_flash.html" %}
+
+        {% if is_owner %}
+        <div class="form-actions detail__owner-actions">
+            <a href="{{ url_for('projects.preview', project_id=project.id) }}" class="btn btn--secondary btn--sm">{{ 'Continuar el borrador' if project.is_draft else 'Editar proyecto' }}</a>
+        </div>
+        {% endif %}
+
+        {{ sections(project) }}
+
+        <section class="profile-card">
+            <h2 class="profile-card__title">Contacto</h2>
+            <dl class="facts">
+                <div class="facts__item"><dt class="facts__label">Creador</dt><dd class="facts__value">{{ project.owner.first_name }} {{ project.owner.last_name }}</dd></div>
+                <div class="facts__item"><dt class="facts__label">Correo institucional</dt><dd class="facts__value"><a href="mailto:{{ project.owner.email }}" class="facts__link">{{ project.owner.email }}</a></dd></div>
+                {# El número de contacto se agrega cuando exista en el perfil (lo hace Sebastián) #}
+            </dl>
+        </section>
+    </main>
+
+</body>
+</html>

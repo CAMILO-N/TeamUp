@@ -19,3 +19,7 @@ class Vacancy(db.Model):
 
     project = db.relationship("Project", back_populates="vacancies")
     major = db.relationship("Major")
+
+    @property
+    def major_label(self):
+        return self.major.name if self.major else "Cualquier carrera"

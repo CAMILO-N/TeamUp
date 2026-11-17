@@ -1,0 +1,133 @@
+/* Proyectos: pasos para crear, vista previa, detalle y tarjetas.
+   Se usa junto a styles.css, profile.css y admin.css (colores, campos, botones y etiquetas). */
+
+/* Barra de pasos */
+.wizard {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 4px 0 24px;
+}
+
+.wizard__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px 8px 8px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--gray);
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: color .15s, border-color .15s;
+}
+
+a.wizard__item:hover { color: var(--bone); border-color: var(--gray); }
+
+.wizard__number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 0.8rem;
+}
+
+.wizard__item--current {
+    color: var(--bone);
+    border-color: var(--coral);
+    box-shadow: 0 0 18px rgba(228, 87, 46, 0.2);
+}
+
+.wizard__item--current .wizard__number { background: var(--coral); border-color: var(--coral); color: var(--bone); }
+
+.wizard-eyebrow {
+    color: var(--ochre);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+/* Etiqueta de categoría */
+.chip-tag {
+    display: inline-block;
+    align-self: flex-start;
+    padding: 3px 12px;
+    border: 1px solid rgba(242, 179, 61, 0.45);
+    border-radius: 999px;
+    background: rgba(242, 179, 61, 0.1);
+    color: var(--ochre);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Estado borrador */
+.badge--draft { color: var(--ochre); background: rgba(242, 179, 61, 0.08); border-color: rgba(242, 179, 61, 0.35); border-style: dashed; }
+
+/* Tarjetas */
+.project-card__link { color: inherit; }
+.project-card__link:hover { color: var(--coral); }
+.project-card__meta { color: var(--gray); font-size: 0.82rem; }
+
+/* Lista de roles */
+.vacancy-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+
+.vacancy {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 18px;
+    background: var(--charcoal);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+}
+
+.vacancy__info { min-width: 0; }
+.vacancy__role { font-weight: 600; overflow-wrap: anywhere; }
+.vacancy__meta { color: var(--gray); font-size: 0.85rem; margin-top: 2px; }
+.vacancy__slots { color: var(--ochre); font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
+
+/* Casilla "Pide experiencia previa" */
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 4px 0 20px;
+    cursor: pointer;
+}
+
+.checkbox__input { width: 18px; height: 18px; accent-color: var(--coral); cursor: pointer; }
+.checkbox__text { color: var(--bone); font-size: 0.92rem; }
+
+/* Título de sección con enlace "Editar" */
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.section-head__edit { color: var(--coral); font-size: 0.88rem; font-weight: 600; }
+.section-head__edit:hover { text-decoration: underline; }
+
+/* Detalle */
+.detail__badges { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
+.detail__summary { font-size: 1.05rem; line-height: 1.5; margin-bottom: 12px; }
+.detail__text { color: var(--gray); line-height: 1.65; white-space: pre-line; overflow-wrap: anywhere; }
+.detail__owner-actions { margin: 4px 0 20px; }
+
+/* Datos en pares (fechas, contacto) */
+.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.facts__label { color: var(--gray); font-size: 0.78rem; margin-bottom: 4px; }
+.facts__value { font-weight: 500; overflow-wrap: anywhere; }
+.facts__link { color: var(--coral); }
+.facts__link:hover { text-decoration: underline; }
+
+/* Pantallas pequeñas */
+@media (max-width: 560px) {
+    .wizard__text { display: none; }
+    .wizard__item { padding: 6px; }
+    .wizard__item--current .wizard__text { display: inline; }
+    .wizard__item--current { padding-right: 14px; }
+    .vacancy { flex-wrap: wrap; }
+}

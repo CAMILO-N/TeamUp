@@ -1,0 +1,27 @@
+{# Barra de pasos para crear o editar un proyecto (Información → Roles → Fechas → Vista previa).
+   Mientras el proyecto no existe (paso 1 de uno nuevo), los pasos no son enlaces. #}
+{% macro wizard(project, current) %}
+{% set items = [
+    ("info", "Información", "projects.info"),
+    ("roles", "Roles", "projects.roles"),
+    ("dates", "Fechas", "projects.dates"),
+    ("preview", "Vista previa", "projects.preview"),
+] %}
+<nav class="wizard" aria-label="Pasos del proyecto">
+    {% for key, text, endpoint in items %}
+    {% set state = ' wizard__item--current' if key == current else '' %}
+    {% if project %}
+    <a href="{{ url_for(endpoint, project_id=project.id) }}" class="wizard__item{{ state }}"{% if key == current %} aria-current="step"{% endif %}>
+        <span class="wizard__number">{{ loop.index }}</span><span class="wizard__text">{{ text }}</span>
+    </a>
+    {% else %}
+    <span class="wizard__item{{ state }}"{% if key == current %} aria-current="step"{% endif %}>
+        <span class="wizard__number">{{ loop.index }}</span><span class="wizard__text">{{ text }}</span>
+    </span>
+    {% endif %}
+    {% endfor %}
+</nav>
+{% endmacro %}
+
+{# "Paso 2 de 4" sobre el título de la tarjeta #}
+{% macro eyebrow(number) %}<p class="wizard-eyebrow">Paso {{ number }} de 4</p>{% endmacro %}
