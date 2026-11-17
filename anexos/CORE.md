@@ -112,7 +112,11 @@ users >──< skills
 
 ## Orden de trabajo (propuesta)
 
-1. **Base del core:** `categories`, campos nuevos de `projects`, `vacancies`.
+1. **Base del core:** `categories`, campos nuevos de `projects`, `vacancies`. **Hecho (2026-11-17), aplicado en Neon `dev`.**
+    - Modelos: `teamup/models/category.py`, `teamup/models/vacancy.py` y las columnas nuevas en `teamup/models/project.py`.
+    - Listas compartidas en `teamup/choices.py`: `WEEKLY_HOURS` (la disponibilidad del perfil usa **esta misma lista**), `MODALITIES`, estados del proyecto y de las vacantes, y `label()` para mostrar su texto en español.
+    - Los proyectos nuevos nacen como `draft`; los que ya existían quedaron como `open`. Mientras no esté el paso 2, el formulario actual publica directo como `open`.
+    - Las postulaciones (`applications`) ya se pueden construir sobre `vacancies`.
 2. **Proyecto completo:** crear y editar por pasos, y la página de detalle.
 3. **Postulaciones:** `applications`, postularse, aceptar o rechazar, Mis proyectos y Mis postulaciones.
 4. **Perfil:** bio, habilidades, disponibilidad, enlaces y perfil público.

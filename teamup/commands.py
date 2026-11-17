@@ -1,6 +1,7 @@
 import click
 
 from teamup.extensions import db
+from teamup.models.category import CATEGORIES, Category
 from teamup.models.faculty import FACULTIES, Faculty
 from teamup.models.major import Major
 from teamup.models.role import ADMIN, ROLES, Role
@@ -22,7 +23,7 @@ def register_commands(app):
 
     @app.cli.command("seed")
     def seed():
-        """Carga los datos iniciales que falten: roles, facultades y carreras. No duplica nada."""
+        """Carga los datos iniciales que falten: roles, facultades, carreras y categorías. No duplica nada."""
         added = 0
 
         for name, label in ROLES:
@@ -40,6 +41,11 @@ def register_commands(app):
                 if Major.query.filter_by(name=major_name).first() is None:
                     db.session.add(Major(name=major_name, faculty=faculty))
                     added += 1
+
+        for category_name in CATEGORIES:
+            if Category.query.filter_by(name=category_name).first() is None:
+                db.session.add(Category(name=category_name))
+                added += 1
 
         db.session.commit()
         click.echo(f"Datos iniciales listos ({added} registros nuevos).")
