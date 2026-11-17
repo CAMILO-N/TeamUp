@@ -177,7 +177,8 @@ fix(auth): corrige el login con mayusculas - CN
 
 ## Decisiones tomadas
 
-- **Flask-Migrate:** se usa para cambiar las tablas sin borrar los datos. Lo configura Camilo antes de empezar.
+- **Flask-Migrate:** configurado. Las tablas se cambian con migraciones, sin borrar datos (ver "Base de datos").
+- **Solo Neon (PostgreSQL):** SQL Server se quitó de todo el proyecto, en todas las ramas.
 - **Contacto:** solo el número y el correo institucional del creador.
 - **Reportes:** los organiza Sebastián.
 - **Reparto:** cada uno hace back-end y front-end de su parte (ver "Reparto").
@@ -216,13 +217,51 @@ Reglas para todo lo que se escriba en el repo, a mano o con ayuda de un asistent
 - **Clases CSS con BEM:** `bloque__elemento--modificador` (por ejemplo `project-card__title`, `btn--primary`). Cada elemento con estilo lleva su clase; no se usan selectores por etiqueta como `.hero h1`.
 - **Los botones sueltos** (ocultar, borrar, aceptar…) van en un `<form method="POST">` con el token CSRF de `ActionForm`.
 - **Los permisos se revisan en el servidor:** ocultar un botón no basta. Si no tiene permiso, `abort(403)`.
-- **Cambios en la base con Flask-Migrate,** nunca borrando tablas (cuando esté configurado).
+- **Cambios en la base con Flask-Migrate,** nunca borrando tablas ni usando `db.create_all()` (ver "Base de datos").
 - **Nombre de usuario y correo** se guardan en minúsculas (PostgreSQL distingue mayúsculas).
 - **Los commits** siguen el formato de "Cómo escribimos los commits" y no llevan líneas de coautoría.
 
 **Ramas**
 - Cada uno trabaja en la suya (`devCamilo`, `devSebas`). Antes de empezar: `git merge origin/stage`.
 - Lo que funciona pasa a `stage`; cuando `stage` está probado, pasa a `main`.
+
+## Base de datos
+
+**Se usa solo PostgreSQL en Neon.** SQL Server se quitó del código, de `requirements.txt` y del README, en todas las ramas. No volver a agregarlo: las migraciones solo se prueban en PostgreSQL.
+
+**Neon tiene dos ramas:**
+
+| Rama de Neon | La usa |
+|---|---|
+| `production` | La página oficial (rama `main` en Vercel) |
+| `dev` (pruebas) | La página de prueba (rama `stage` en Vercel) y la compu de cada uno |
+
+**En Vercel** cada ambiente ya tiene su `DATABASE_URL`; no hay que hacer nada.
+
+**En la compu** hace falta un archivo `.env` en la carpeta `TeamUp` (no se sube a Git) con la dirección de la rama `dev`:
+
+```
+DATABASE_URL=postgresql://...
+```
+
+Sin ese archivo la app no arranca y avisa: *"Falta DATABASE_URL"*. La dirección se pide a Camilo por un medio privado; nunca se escribe en el código ni en el repo.
+
+**Flask-Migrate** cambia la forma de las tablas sin borrar datos. Las tablas ya no se crean con `db.create_all()`. Neon no conoce los modelos de Python: si se agrega una columna en un modelo, alguien tiene que aplicarla en la base, y eso hace la migración. Los comandos se corren desde la carpeta `TeamUp`:
+
+| Cuándo | Comando |
+|---|---|
+| Cambiaste o agregaste un modelo | `python -m flask --app run db migrate -m "qué cambió"` (crea el archivo en `migrations/versions/`) |
+| Aplicar las migraciones a la base | `python -m flask --app run db upgrade` |
+| Cargar los datos iniciales que falten (roles, facultades, carreras) | `python -m flask --app run seed` (no duplica; se puede correr siempre) |
+| Ver en qué versión está la base | `python -m flask --app run db current` |
+
+**Reglas:**
+- Revisar el archivo que crea `db migrate` antes de aplicarlo: a veces no detecta bien un cambio de nombre.
+- El archivo de la migración se sube a Git en el **mismo commit** que el cambio del modelo.
+- Una migración ya subida a `stage` no se edita: si algo quedó mal, se hace una migración nueva que lo corrige.
+- Como los dos usan la misma rama `dev`, quien crea la migración la aplica con `db upgrade`; el otro no tiene que hacer nada con la base al bajar los cambios.
+- Los datos iniciales nuevos (por ejemplo, las categorías) se agregan al comando `seed` en `teamup/commands.py`, no a una migración.
+- **Antes de pasar a `main`:** Camilo corre `db upgrade` apuntando a la rama `production` de Neon, para que la base real tenga las tablas nuevas antes de que llegue el código.
 
 ## Este archivo no va a main
 
