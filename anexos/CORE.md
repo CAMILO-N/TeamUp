@@ -1,0 +1,190 @@
+# Plan del core (para la presentación)
+
+> **Estado: propuesta para discutir.** Sale de los apuntes de Camilo y Sebastián. Nada de esto está programado todavía. Lo ya decidido está en "Decisiones tomadas"; lo pendiente, en "Preguntas abiertas".
+
+## Qué es "el core"
+
+El core es lo que hace que TeamUp sea TeamUp: **publicar un proyecto con vacantes, postularse y armar el equipo**. Para la presentación eso tiene que funcionar de punta a punta. Lo demás (notificaciones, moderación, filtros) suma, pero va después.
+
+## Lo que falta, según los apuntes
+
+**Usuario**
+- Perfil completo: sobre mí, habilidades, disponibilidad y enlaces.
+- Proyecto completo: nombre, descripción larga, categoría, modalidad, dedicación, fechas y contacto.
+- Vacantes por proyecto: cada una con su rol y la carrera que se busca.
+- Página de detalle del proyecto.
+- Editar proyecto.
+- Postularse a una vacante con un mensaje, y que el creador acepte o rechace.
+- "Mis proyectos" (los que creé) y "Mis postulaciones" (en qué estado está cada una).
+- Filtrar proyectos en Explorar.
+- Notificaciones con una campana en la barra.
+- Reportar un proyecto.
+- Forma de contacto.
+
+**Administrador**
+- Filtro de palabras: una lista de palabras que el sistema marca.
+- Validaciones: si un proyecto tiene una palabra marcada (o lo reportan), no se publica hasta que el admin lo revise.
+- Moderar los proyectos reportados.
+
+## Cambios en la base (propuesta)
+
+### Tablas que cambian
+
+**`users`**: se agregan los datos del perfil.
+
+| Columna nueva | Qué guarda |
+|---|---|
+| `bio` | "Sobre mí", texto largo, opcional |
+| `availability` | Disponibilidad en horas por semana, elegida de una lista (por ejemplo 1–2 h, 3–4 h…) |
+| `phone` | Número de contacto |
+| `portfolio_url`, `linkedin_url` | Enlaces, opcionales |
+
+El **número de proyectos** y los **proyectos realizados** no se guardan: se cuentan desde las otras tablas, así nunca quedan desactualizados.
+
+**`projects`**: se completa el proyecto.
+
+| Columna | Qué guarda |
+|---|---|
+| `title` | Nombre (ya existe) |
+| `summary` | Descripción corta, para las tarjetas de Explorar |
+| `description` | Descripción larga (hoy tiene 1000 caracteres; pasa a texto largo) |
+| `category_id` | FK a `categories` (se elige de un dropdown) |
+| `modality` | Presencial, remota o híbrida |
+| `weekly_hours` | Dedicación semanal, de la **misma lista** que la disponibilidad del perfil, para poder compararlas |
+| `start_date` | Fecha de inicio |
+| `estimated_end_date` | Fecha estimada de cierre |
+| `finished_at` | Fecha real en que se terminó. La duración en días = `finished_at` − `start_date`, calculada, no guardada |
+| `status` | `draft` → `pending_review` → `open` → `in_progress` → `finished` (o `cancelled`) |
+
+`is_hidden` se queda: sigue sirviendo para que el admin oculte un proyecto.
+
+**Contacto del proyecto:** no se guarda en `projects`. Se muestra el **número** y el **correo institucional** del creador, que ya están en `users`.
+
+### Tablas nuevas
+
+| Tabla | Columnas principales | Para qué |
+|---|---|---|
+| **`categories`** | `name` | Cortometraje, startup, investigación, arte, evento, podcast, tecnología… Se cargan solas, como las facultades |
+| **`skills`** + **`user_skills`** | `name` / (`user_id`, `skill_id`) | Habilidades del perfil. Una persona tiene muchas y una habilidad la tienen muchos |
+| **`vacancies`** | `project_id`, `role_name`, `major_id` (vacío = cualquier carrera), `requires_experience`, `slots`, `status` | Las vacantes de cada proyecto. La carrera se elige con la cascada facultad → carrera que ya existe |
+| **`applications`** | `vacancy_id`, `user_id`, `message`, `status`, `created_at`, `decided_at` | Las postulaciones. Estados: `pending`, `accepted`, `rejected`, `withdrawn` |
+| **`notifications`** | `user_id`, `text`, `link`, `is_read`, `created_at` | Lo que muestra la campana |
+| **`banned_words`** | `word` | El filtro de palabras. El admin las agrega o quita |
+| **`validation_requests`** | `project_id`, `source`, `detail`, `status`, `reviewed_by`, `reviewed_at` | La cola del admin: proyectos que esperan revisión antes de publicarse |
+
+**Reportes:** los organiza Sebastián (tablas, reglas y pantallas). Lo único que hay que acordar es cómo un reporte llega a la cola del admin (`validation_requests`).
+
+**"Quién" ocupa una vacante** no es una columna: son las postulaciones aceptadas de esa vacante. Así no hay que actualizar dos lugares.
+
+### Cómo se relaciona todo
+
+```
+users ──< projects ──< vacancies ──< applications >── users
+             │
+             ├──> categories
+             └──< validation_requests
+users ──< notifications
+users >──< skills
+```
+
+## Reglas importantes (validadas en el servidor)
+
+- Una persona no puede postular dos veces a la misma vacante.
+- Al aceptar una postulación, el servidor vuelve a contar los cupos; si ya no hay, rechaza.
+- Solo el creador del proyecto acepta o rechaza postulaciones y edita su proyecto.
+- Un proyecto con una palabra marcada queda en `pending_review` y crea una `validation_request`; no aparece en Explorar hasta que el admin lo apruebe.
+- El creador no puede postular a su propio proyecto.
+
+## Páginas nuevas
+
+| Página | Qué muestra |
+|---|---|
+| Detalle del proyecto | Toda la información, las vacantes y el botón "Postularme" |
+| Crear / editar proyecto | Por pasos, como en Figma: Información → Roles → Fechas → Vista previa |
+| Mis proyectos | Los proyectos que creé, con sus postulaciones para aceptar o rechazar |
+| Mis postulaciones | Dónde me postulé y en qué estado está cada una |
+| Perfil público | Sobre mí, habilidades, disponibilidad, enlaces y proyectos |
+| Explorar con filtros | Por categoría, facultad o carrera, modalidad y dedicación |
+| Admin: validaciones | La cola de proyectos por revisar (aprobar o rechazar) |
+| Admin: palabras | Agregar y quitar palabras del filtro |
+
+## Orden de trabajo (propuesta)
+
+1. **Base del core:** `categories`, campos nuevos de `projects`, `vacancies`.
+2. **Proyecto completo:** crear y editar por pasos, y la página de detalle.
+3. **Postulaciones:** `applications`, postularse, aceptar o rechazar, Mis proyectos y Mis postulaciones.
+4. **Perfil:** bio, habilidades, disponibilidad, enlaces y perfil público.
+5. **Explorar con filtros.**
+6. **Notificaciones** (la campana).
+7. **Moderación:** filtro de palabras, reportes y cola de validación del admin.
+
+Del 1 al 3 es el core mínimo para presentar.
+
+## Reparto
+
+Cada uno hace **su parte completa: back-end y front-end** (modelos, rutas, validaciones y pantallas). Sebastián sigue cuidando que todo el diseño se vea igual.
+
+| Camilo | Sebastián |
+|---|---|
+| Flask-Migrate (primero, porque lo usan los dos) | Perfil: sobre mí, habilidades, disponibilidad, número, enlaces y perfil público |
+| Proyectos: tablas (`projects`, `categories`, `vacancies`), crear y editar por pasos, detalle | Postulaciones: `applications`, postularse, aceptar o rechazar, Mis postulaciones |
+| Cómo se ven los proyectos: Explorar, tarjetas, filtros, Mis proyectos | Reportes: los organiza él |
+| Administración: filtro de palabras, cola de validación y panel | Lo demás que falte (por confirmar): notificaciones |
+
+**Dependencias (quién espera a quién):**
+- Las postulaciones van sobre las vacantes, así que **Camilo hace primero `vacancies`** y Sebastián después `applications`.
+- "Aceptar o rechazar" aparece en Mis proyectos (de Camilo), pero la lógica es de postulaciones (de Sebastián): Camilo deja el espacio en la pantalla y Sebastián pone los botones.
+- La cola del admin (Camilo) recibe proyectos del filtro de palabras y de los reportes (Sebastián): hay que acordar ese punto.
+
+## Cómo escribimos los commits
+
+Formato:
+
+```
+tipo(área): qué se hizo, en presente - iniciales
+```
+
+**Tipos**
+
+| Tipo | Cuándo |
+|---|---|
+| `feat` | Algo nuevo que hace la app |
+| `fix` | Se arregla un error |
+| `style` | Diseño o CSS, sin cambiar cómo funciona |
+| `refactor` | Se reordena código sin cambiar lo que hace |
+| `db` | Cambios en tablas o datos iniciales |
+| `docs` | README, anexos, comentarios |
+| `chore` | Configuración, dependencias, deploy |
+
+**Áreas:** `auth`, `perfil`, `proyectos`, `vacantes`, `postulaciones`, `explorar`, `notificaciones`, `admin`, `moderacion`, `deploy`.
+
+**Ejemplos**
+
+```
+db(vacantes): agrega la tabla de vacantes por proyecto - CN
+feat(postulaciones): permite aceptar o rechazar una postulacion - CN
+style(proyectos): diseña la pagina de detalle - SR
+fix(auth): corrige el login con mayusculas - CN
+```
+
+**Reglas**
+- Un commit = un cambio con sentido propio. No mezclar, por ejemplo, una tabla nueva con el CSS del perfil.
+- En español, en presente, sin punto final, corto (máximo unas 70 letras antes de las iniciales).
+- Iniciales: ` - CN` (Camilo) y ` - SR` (Sebastián).
+- Los merges a `stage` y `main` mantienen su mensaje automático.
+
+## Decisiones tomadas
+
+- **Flask-Migrate:** se usa para cambiar las tablas sin borrar los datos. Lo configura Camilo antes de empezar.
+- **Contacto:** solo el número y el correo institucional del creador.
+- **Reportes:** los organiza Sebastián.
+- **Reparto:** cada uno hace back-end y front-end de su parte (ver "Reparto").
+- **Categorías:** una categoría por proyecto, elegida de un dropdown (no etiquetas).
+- **Sin más JavaScript:** lo nuevo se resuelve con Flask (formularios que se envían al servidor).
+- **Disponibilidad:** horas por semana, elegidas de una lista (1–2 h, 3–4 h…). La dedicación semanal del proyecto usa la misma lista.
+- **Crear proyecto por pasos:** una página por paso (Información → Roles → Fechas → Vista previa). El proyecto se guarda como borrador (`draft`) desde el paso 1, cada paso se valida en el servidor y en "Vista previa" se publica.
+
+## Preguntas abiertas
+
+1. **Para Sebastián:** ¿hace las notificaciones?
+2. **Para Sebastián:** ¿cómo pasa un proyecto reportado a la cola de validación del admin?
