@@ -3,6 +3,7 @@
         <img class="navbar__logo-img" src="{{ url_for('static', filename='img/logo.png') }}" alt="TeamUp">
     </a>
     <nav class="navbar__links">
+        <a href="{{ url_for('projects.mine') }}" class="navbar__link navbar__link--my-projects">Mis proyectos</a>
         {% if current_user.is_authenticated and current_user.is_admin %}
         <a href="{{ url_for('admin.users') }}" class="navbar__link navbar__link--admin">Admin</a>
         {% endif %}

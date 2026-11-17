@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from sqlalchemy import or_
+
 from teamup.choices import (
     MODALITIES, PROJECT_DRAFT, PROJECT_FINISHED, PROJECT_IN_PROGRESS, PROJECT_OPEN, PROJECT_STATUSES,
     WEEKLY_HOURS, label,
@@ -69,6 +71,42 @@ class Project(db.Model):
         if not (self.start_date and self.estimated_end_date and self.weekly_hours and self.modality):
             missing.append("las fechas, la dedicación y la modalidad")
         return missing
+
+    def finish(self, day):
+        """Marca el proyecto como terminado en esa fecha. Devuelve un mensaje si no se puede."""
+        if self.status not in (PROJECT_OPEN, PROJECT_IN_PROGRESS):
+            return "Solo se puede terminar un proyecto publicado."
+        if self.start_date and day < self.start_date:
+            return "No se puede terminar antes de la fecha de inicio."
+        self.status = PROJECT_FINISHED
+        self.finished_at = day
+        return None
+
+    @classmethod
+    def search(cls, category_id=None, faculty_id=None, major_id=None, modality=None, weekly_hours=None):
+        """Proyectos de Explorar (publicados y no ocultos), con filtros opcionales.
+
+        Por carrera o facultad salen los que tienen un rol abierto para esa carrera
+        o para cualquier carrera, porque esa persona también puede postularse ahí."""
+        from teamup.choices import VACANCY_OPEN
+        from teamup.models.major import Major
+        from teamup.models.vacancy import Vacancy
+
+        query = cls.query.filter_by(status=PROJECT_OPEN, is_hidden=False)
+        if category_id:
+            query = query.filter(cls.category_id == category_id)
+        if modality:
+            query = query.filter(cls.modality == modality)
+        if weekly_hours:
+            query = query.filter(cls.weekly_hours == weekly_hours)
+        if major_id:
+            query = query.filter(cls.vacancies.any(
+                (Vacancy.status == VACANCY_OPEN) & or_(Vacancy.major_id == major_id, Vacancy.major_id.is_(None))))
+        elif faculty_id:
+            query = query.filter(cls.vacancies.any(
+                (Vacancy.status == VACANCY_OPEN)
+                & or_(Vacancy.major_id.is_(None), Vacancy.major.has(Major.faculty_id == faculty_id))))
+        return query.order_by(cls.created_at.desc())
 
     @property
     def duration_days(self):

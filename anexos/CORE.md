@@ -126,7 +126,11 @@ users >──< skills
     - **Para Sebastián:** en `_projects.html` (macro `sections`) hay un comentario donde va el botón "Postularme" de cada rol, y en `project_detail.html` otro donde va el número de contacto cuando exista en el perfil.
 3. **Postulaciones:** `applications`, postularse, aceptar o rechazar, Mis proyectos y Mis postulaciones.
 4. **Perfil:** bio, habilidades, disponibilidad, enlaces y perfil público.
-5. **Explorar con filtros.**
+5. **Explorar con filtros.** **Hecho (2026-11-17), junto con "Mis proyectos" y terminar un proyecto.**
+    - Filtros por categoría, facultad, carrera, modalidad y dedicación, por `GET` (quedan en la dirección). Los valores que no existen se ignoran (`ExploreFilterForm.filters()`); la búsqueda está en `Project.search()`.
+    - Por facultad o carrera salen los proyectos con un rol abierto para esa carrera **o para cualquier carrera**.
+    - "Mis proyectos" (`/my-projects`): publicados, borradores y terminados, con sus acciones. "Terminar proyecto" pone `finished_at` y muestra la duración en días (`Project.finish()`; no se puede antes de la fecha de inicio).
+    - **Para Sebastián:** en `my_projects.html` hay un comentario donde van las postulaciones de cada proyecto (aceptar o rechazar).
 6. **Notificaciones** (la campana).
 7. **Moderación:** filtro de palabras, reportes y cola de validación del admin.
 

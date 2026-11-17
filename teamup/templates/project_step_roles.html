@@ -1,5 +1,5 @@
 {# Paso 2: roles (vacantes) que busca el proyecto. Sin facultad = cualquier carrera. #}
-{% from "_fields.html" import csrf, csrf_input, input_field, dependent_select %}
+{% from "_fields.html" import csrf, csrf_input, input_field, optional_select, dependent_select %}
 {% from "_project_steps.html" import wizard, eyebrow %}
 <!DOCTYPE html>
 <html lang="es">
@@ -58,18 +58,8 @@
 
                 {{ input_field(form.role_name, "Ej. Guionista, Director de fotografía, Extras", "off") }}
 
-                {# La facultad tiene una opción vacía a propósito: sin facultad = cualquier carrera #}
-                <div class="field">
-                    {{ form.faculty.label(class_="field__label") }}
-                    <select id="{{ form.faculty.id }}" name="{{ form.faculty.name }}" class="field__input field__input--select{{ ' field__input--invalid' if form.faculty.errors }}">
-                        <option value="">Cualquier carrera</option>
-                        {% for value, text in form.faculty.choices %}
-                        <option value="{{ value }}" {% if form.faculty.data|string == value|string %}selected{% endif %}>{{ text }}</option>
-                        {% endfor %}
-                    </select>
-                    {% if form.faculty.errors %}<small class="field__error">{{ form.faculty.errors[0] }}</small>
-                    {% else %}<small class="hint">Déjala en "Cualquier carrera" si el rol está abierto a todos.</small>{% endif %}
-                </div>
+                {# Sin facultad = cualquier carrera #}
+                {{ optional_select(form.faculty, "Cualquier carrera", hint='Déjala en "Cualquier carrera" si el rol está abierto a todos.') }}
 
                 <div class="row row--wide-first">
                     {{ dependent_select(form.major, form.faculty) }}

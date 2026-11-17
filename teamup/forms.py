@@ -246,5 +246,33 @@ class ProjectDatesForm(FlaskForm):
             raise ValidationError("Elige una opción de la lista.")
 
 
+class ExploreFilterForm(FlaskForm):
+    """Filtros de Explorar. Van en la dirección (GET) y solo leen datos, así que no llevan CSRF."""
+
+    class Meta:
+        csrf = False
+
+    category = SelectField("Categoría", coerce=int_or_none, validate_choice=False)
+    faculty = SelectField("Facultad", coerce=int_or_none, validate_choice=False)
+    major = SelectField("Carrera", coerce=int_or_none, validate_choice=False)
+    modality = SelectField("Modalidad", choices=MODALITIES, validate_choice=False)
+    weekly_hours = SelectField("Dedicación", choices=WEEKLY_HOURS, validate_choice=False)
+
+    def filters(self):
+        """Los filtros válidos, listos para Project.search(). Lo que no existe se ignora."""
+        category = self.category.data if db.session.get(Category, self.category.data or 0) else None
+        faculty = self.faculty.data if db.session.get(Faculty, self.faculty.data or 0) else None
+        major = db.session.get(Major, self.major.data or 0)
+        # La carrera solo cuenta si es de la facultad elegida
+        major_id = major.id if major and major.faculty_id == faculty else None
+        return {
+            "category_id": category,
+            "faculty_id": faculty,
+            "major_id": major_id,
+            "modality": self.modality.data if self.modality.data in dict(MODALITIES) else None,
+            "weekly_hours": self.weekly_hours.data if self.weekly_hours.data in dict(WEEKLY_HOURS) else None,
+        }
+
+
 class ActionForm(FlaskForm):
     """Sin campos: solo lleva el token CSRF de los botones (eliminar, ocultar, cambiar rol...)."""
