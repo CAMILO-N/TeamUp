@@ -1,5 +1,3 @@
-from sqlalchemy import event
-
 from teamup.extensions import db
 
 
@@ -37,12 +35,6 @@ FACULTIES = {
         "Diseño Gráfico",
     ],
 }
-
-
-@event.listens_for(Faculty.__table__, "after_create")
-def _insert_faculties(target, connection, **kw):
-    """Inserta las facultades cuando create_all() crea la tabla."""
-    connection.execute(target.insert(), [{"name": name} for name in FACULTIES])
 
 
 def faculty_choices():

@@ -94,6 +94,8 @@ git merge origin/stage
 
 ## Antes de empezar (los dos)
 
+> **Ya no aplica (2026-11-17):** el proyecto usa solo Neon (PostgreSQL) y Flask-Migrate; ya no se borran tablas en SQL Server. Ver la sección "Base de datos" de `anexos/CORE.md`.
+
 Las tablas de la base cambiaron otra vez (ahora hay roles y proyectos). Después de bajar los cambios, hay que borrar las tablas viejas en SQL Server; al arrancar la app se vuelven a crear solas, con las facultades, carreras y roles ya cargados:
 
 ```sql

@@ -3,26 +3,20 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, render_template
 
-from teamup.extensions import db, login_manager
+from teamup.extensions import db, login_manager, migrate
 
 
 def database_uri():
-    """Base de Neon (PostgreSQL) si hay DATABASE_URL; si no, el SQL Server local."""
+    """Dirección de la base de Neon (PostgreSQL), tomada de DATABASE_URL."""
     url = os.environ.get("DATABASE_URL", "").strip()
-    if url:
-        # SQLAlchemy necesita saber que el driver es psycopg
-        for prefix in ("postgresql://", "postgres://"):
-            if url.startswith(prefix):
-                return "postgresql+psycopg://" + url[len(prefix):]
-        return url
+    if not url:
+        raise RuntimeError("Falta DATABASE_URL: ponla en el archivo .env (o en las variables de Vercel).")
 
-    server = os.environ.get("DB_SERVER", "localhost")
-    return (
-        f"mssql+pyodbc://@{server}/TeamUp"
-        "?driver=ODBC+Driver+17+for+SQL+Server"
-        "&trusted_connection=yes"
-        "&TrustServerCertificate=yes"
-    )
+    # SQLAlchemy necesita saber que el driver es psycopg
+    for prefix in ("postgresql://", "postgres://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix):]
+    return url
 
 
 def create_app():
@@ -45,11 +39,12 @@ def create_app():
     app.config["SECRET_KEY"] = secret_key or "teamup-dev-key"
 
     db.init_app(app)
+    migrate.init_app(app, db)
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
     login_manager.login_message = "Inicia sesión para continuar."
 
-    # Se importan los modelos para que create_all() cree sus tablas
+    # Se importan los modelos para que Flask-Migrate conozca sus tablas
     from teamup.models import faculty, major, project, role, user
 
     @login_manager.user_loader
@@ -57,9 +52,6 @@ def create_app():
         # Si la cuenta fue desactivada, la sesión deja de valer
         found = db.session.get(user.User, int(user_id))
         return found if found and found.is_active else None
-
-    with app.app_context():
-        db.create_all()
 
     from teamup.controllers.admin import admin
     from teamup.controllers.auth import auth

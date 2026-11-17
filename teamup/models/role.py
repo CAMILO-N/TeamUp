@@ -1,5 +1,3 @@
-from sqlalchemy import event
-
 from teamup.extensions import db
 
 
@@ -20,8 +18,3 @@ ROLES = [
     (ADMIN, "Administrador"),
 ]
 
-
-@event.listens_for(Role.__table__, "after_create")
-def _insert_roles(target, connection, **kw):
-    """Inserta los roles cuando create_all() crea la tabla."""
-    connection.execute(target.insert(), [{"name": name, "label": label} for name, label in ROLES])

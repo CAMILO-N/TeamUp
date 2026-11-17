@@ -1,7 +1,4 @@
-from sqlalchemy import event, select
-
 from teamup.extensions import db
-from teamup.models.faculty import FACULTIES, Faculty
 
 
 class Major(db.Model):
@@ -13,13 +10,3 @@ class Major(db.Model):
 
     faculty = db.relationship("Faculty", back_populates="majors")
 
-
-@event.listens_for(Major.__table__, "after_create")
-def _insert_majors(target, connection, **kw):
-    """Inserta las carreras de cada facultad cuando create_all() crea la tabla."""
-    faculty_ids = dict(connection.execute(select(Faculty.name, Faculty.id)).all())
-    connection.execute(target.insert(), [
-        {"name": major, "faculty_id": faculty_ids[faculty]}
-        for faculty, majors in FACULTIES.items()
-        for major in majors
-    ])
