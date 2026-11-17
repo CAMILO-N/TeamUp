@@ -1,6 +1,9 @@
 from datetime import datetime
 
-from teamup.choices import PROJECT_DRAFT
+from teamup.choices import (
+    MODALITIES, PROJECT_DRAFT, PROJECT_FINISHED, PROJECT_IN_PROGRESS, PROJECT_OPEN, PROJECT_STATUSES,
+    WEEKLY_HOURS, label,
+)
 from teamup.extensions import db
 
 
@@ -34,6 +37,38 @@ class Project(db.Model):
     # Al borrar el proyecto se borran sus vacantes
     vacancies = db.relationship("Vacancy", back_populates="project", cascade="all, delete-orphan",
                                 order_by="Vacancy.id")
+
+    @property
+    def is_draft(self):
+        return self.status == PROJECT_DRAFT
+
+    @property
+    def is_public(self):
+        """Lo puede ver cualquiera: publicado y no oculto por el admin."""
+        return self.status in (PROJECT_OPEN, PROJECT_IN_PROGRESS, PROJECT_FINISHED) and not self.is_hidden
+
+    @property
+    def status_label(self):
+        return label(PROJECT_STATUSES, self.status)
+
+    @property
+    def modality_label(self):
+        return label(MODALITIES, self.modality)
+
+    @property
+    def weekly_hours_label(self):
+        return label(WEEKLY_HOURS, self.weekly_hours)
+
+    def missing_for_publish(self):
+        """Lo que falta para publicar, en el orden de los pasos. Vacío = se puede publicar."""
+        missing = []
+        if not (self.title and self.summary and self.description and self.category_id):
+            missing.append("la información del paso 1")
+        if not self.vacancies:
+            missing.append("al menos un rol")
+        if not (self.start_date and self.estimated_end_date and self.weekly_hours and self.modality):
+            missing.append("las fechas, la dedicación y la modalidad")
+        return missing
 
     @property
     def duration_days(self):

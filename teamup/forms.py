@@ -1,12 +1,16 @@
 from flask_login import current_user
 from flask_wtf import FlaskForm
 from werkzeug.security import check_password_hash
-from wtforms import EmailField, PasswordField, SelectField, StringField, TextAreaField
+from wtforms import (
+    BooleanField, DateField, EmailField, IntegerField, PasswordField, SelectField, StringField, TextAreaField,
+)
 from wtforms.validators import (
-    DataRequired, Email, EqualTo, Length, NumberRange, Optional, Regexp, ValidationError,
+    DataRequired, Email, EqualTo, InputRequired, Length, NumberRange, Optional, Regexp, ValidationError,
 )
 
+from teamup.choices import MODALITIES, WEEKLY_HOURS
 from teamup.extensions import db
+from teamup.models.category import Category
 from teamup.models.faculty import Faculty
 from teamup.models.major import Major
 from teamup.models.user import User
@@ -160,15 +164,86 @@ class ProfileForm(UserDataForm):
                 raise ValidationError("La contraseña actual no es correcta.")
 
 
-class ProjectForm(FlaskForm):
+class ProjectInfoForm(FlaskForm):
+    """Paso 1 de crear un proyecto: de qué se trata."""
+
     title = StringField("Título", filters=[strip_spaces], validators=[
         DataRequired("Escribe un título."),
         Length(max=80, message="Máximo 80 caracteres."),
     ])
+    summary = StringField("Resumen", filters=[strip_spaces], validators=[
+        DataRequired("Escribe un resumen corto."),
+        Length(max=200, message="Máximo 200 caracteres."),
+    ])
     description = TextAreaField("Descripción", filters=[strip_spaces], validators=[
         DataRequired("Cuenta de qué se trata tu proyecto."),
-        Length(max=1000, message="Máximo 1000 caracteres."),
+        Length(max=3000, message="Máximo 3000 caracteres."),
     ])
+    # Las opciones se cargan en el controlador
+    category = SelectField("Categoría", coerce=int_or_none, validate_choice=False, validators=[
+        DataRequired("Elige una categoría."),
+    ])
+
+    def validate_category(self, field):
+        if db.session.get(Category, field.data) is None:
+            raise ValidationError("Elige una categoría de la lista.")
+
+
+class VacancyForm(FlaskForm):
+    """Paso 2: un rol que busca el proyecto. Sin facultad = cualquier carrera."""
+
+    role_name = StringField("Rol", filters=[strip_spaces], validators=[
+        DataRequired("Escribe el nombre del rol."),
+        Length(max=60, message="Máximo 60 caracteres."),
+    ])
+    faculty = SelectField("Facultad", coerce=int_or_none, validate_choice=False, validators=[Optional()])
+    # Sin Optional(): si eligió facultad, validate_major tiene que correr aunque la carrera llegue vacía
+    major = SelectField("Carrera", coerce=int_or_none, validate_choice=False)
+    requires_experience = BooleanField("Pide experiencia previa")
+    slots = IntegerField("Cupos", default=1, validators=[
+        # InputRequired y no DataRequired: con DataRequired un 0 cuenta como vacío y el mensaje confunde
+        InputRequired("Indica cuántas personas buscas."),
+        NumberRange(1, 20, message="De 1 a 20 cupos."),
+    ])
+
+    def validate_faculty(self, field):
+        if field.data is not None and db.session.get(Faculty, field.data) is None:
+            raise ValidationError("Elige una facultad de la lista.")
+
+    def validate_major(self, field):
+        # Si eligió facultad, la carrera es obligatoria y tiene que ser de esa facultad
+        if self.faculty.data is None:
+            return
+        major = db.session.get(Major, field.data) if field.data is not None else None
+        if major is None or major.faculty_id != self.faculty.data:
+            raise ValidationError("Elige una carrera de esa facultad.")
+
+
+class ProjectDatesForm(FlaskForm):
+    """Paso 3: ritmo y fechas."""
+
+    start_date = DateField("Fecha de inicio", validators=[DataRequired("Elige la fecha de inicio.")])
+    estimated_end_date = DateField("Fecha estimada de cierre", validators=[
+        DataRequired("Elige la fecha estimada de cierre."),
+    ])
+    weekly_hours = SelectField("Dedicación semanal", choices=WEEKLY_HOURS, validate_choice=False, validators=[
+        DataRequired("Elige la dedicación semanal."),
+    ])
+    modality = SelectField("Modalidad", choices=MODALITIES, validate_choice=False, validators=[
+        DataRequired("Elige la modalidad."),
+    ])
+
+    def validate_estimated_end_date(self, field):
+        if self.start_date.data and field.data and field.data < self.start_date.data:
+            raise ValidationError("El cierre no puede ser antes del inicio.")
+
+    def validate_weekly_hours(self, field):
+        if field.data not in dict(WEEKLY_HOURS):
+            raise ValidationError("Elige una opción de la lista.")
+
+    def validate_modality(self, field):
+        if field.data not in dict(MODALITIES):
+            raise ValidationError("Elige una opción de la lista.")
 
 
 class ActionForm(FlaskForm):
