@@ -7,22 +7,16 @@ from teamup.extensions import db, login_manager, migrate
 
 
 def database_uri():
-    """Base de Neon (PostgreSQL) si hay DATABASE_URL; si no, el SQL Server local."""
+    """Dirección de la base de Neon (PostgreSQL), tomada de DATABASE_URL."""
     url = os.environ.get("DATABASE_URL", "").strip()
-    if url:
-        # SQLAlchemy necesita saber que el driver es psycopg
-        for prefix in ("postgresql://", "postgres://"):
-            if url.startswith(prefix):
-                return "postgresql+psycopg://" + url[len(prefix):]
-        return url
+    if not url:
+        raise RuntimeError("Falta DATABASE_URL: ponla en el archivo .env (o en las variables de Vercel).")
 
-    server = os.environ.get("DB_SERVER", "localhost")
-    return (
-        f"mssql+pyodbc://@{server}/TeamUp"
-        "?driver=ODBC+Driver+17+for+SQL+Server"
-        "&trusted_connection=yes"
-        "&TrustServerCertificate=yes"
-    )
+    # SQLAlchemy necesita saber que el driver es psycopg
+    for prefix in ("postgresql://", "postgres://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix):]
+    return url
 
 
 def create_app():
