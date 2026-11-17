@@ -1,6 +1,7 @@
 from flask import Blueprint, abort, flash, redirect, render_template, url_for
 from flask_login import current_user, login_required
 
+from teamup.choices import PROJECT_OPEN
 from teamup.extensions import db
 from teamup.forms import ActionForm, ProjectForm
 from teamup.models.project import Project
@@ -34,7 +35,8 @@ def new():
     form = ProjectForm()
 
     if form.validate_on_submit():
-        project = Project(title=form.title.data, description=form.description.data, owner=current_user)
+        project = Project(title=form.title.data, description=form.description.data, owner=current_user,
+                          status=PROJECT_OPEN)
         db.session.add(project)
         db.session.commit()
         flash("Tu proyecto ya está publicado.", "success")
