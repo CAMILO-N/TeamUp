@@ -368,6 +368,11 @@ a {
         height: 26px;
     }
 
+    /* En pantallas chicas "Mis proyectos" se abre desde Explorar */
+    .navbar__link--my-projects {
+        display: none;
+    }
+
     .hero {
         grid-template-columns: 1fr;
         padding: 32px 16px;

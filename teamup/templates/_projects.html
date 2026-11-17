@@ -82,6 +82,9 @@
         <div class="facts__item"><dt class="facts__label">Cierre estimado</dt><dd class="facts__value">{{ project.estimated_end_date.strftime('%d/%m/%Y') if project.estimated_end_date else '—' }}</dd></div>
         <div class="facts__item"><dt class="facts__label">Dedicación</dt><dd class="facts__value">{{ project.weekly_hours_label if project.weekly_hours else '—' }}</dd></div>
         <div class="facts__item"><dt class="facts__label">Modalidad</dt><dd class="facts__value">{{ project.modality_label if project.modality else '—' }}</dd></div>
+        {% if project.finished_at %}
+        <div class="facts__item"><dt class="facts__label">Terminó</dt><dd class="facts__value">{{ project.finished_at.strftime('%d/%m/%Y') }}{% if project.duration_days is not none %} · {{ project.duration_days }} día{{ '' if project.duration_days == 1 else 's' }}{% endif %}</dd></div>
+        {% endif %}
     </dl>
 </section>
 {% endmacro %}

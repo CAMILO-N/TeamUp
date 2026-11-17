@@ -1,10 +1,10 @@
-from flask import Blueprint, jsonify, redirect, render_template, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from teamup.choices import PROJECT_OPEN
 from teamup.extensions import db
-from teamup.forms import ActionForm
-from teamup.models.faculty import Faculty
+from teamup.forms import ExploreFilterForm
+from teamup.models.category import category_choices
+from teamup.models.faculty import Faculty, faculty_choices
 from teamup.models.project import Project
 
 main = Blueprint("main", __name__)
@@ -20,13 +20,18 @@ def index():
 @main.route("/explore")
 @login_required
 def explore():
+    # Los filtros vienen en la dirección: /explore?category=2&modality=remote
+    form = ExploreFilterForm(request.args)
+    form.category.choices = category_choices()
+    form.faculty.choices = faculty_choices()
+    filters = form.filters()
+
     return render_template(
         "explore.html",
+        form=form,
         # Solo los publicados que buscan equipo; los borradores los ve su dueño en "Mis proyectos"
-        projects=Project.query.filter_by(status=PROJECT_OPEN, is_hidden=False)
-        .order_by(Project.created_at.desc()).all(),
-        my_projects=current_user.projects,
-        csrf_form=ActionForm(),
+        projects=Project.search(**filters).all(),
+        filtering=any(filters.values()),
     )
 
 

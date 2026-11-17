@@ -44,6 +44,22 @@
 </div>
 {% endmacro %}
 
+{# Lista cuya primera opción sí se puede elegir y significa "sin filtro" o "cualquiera"
+   (por ejemplo "Todas" en Explorar o "Cualquier carrera" en los roles). #}
+{% macro optional_select(field, empty_text, hint="") %}
+<div class="field">
+    {{ field.label(class_="field__label") }}
+    <select id="{{ field.id }}" name="{{ field.name }}" class="field__input field__input--select{{ ' field__input--invalid' if field.errors }}">
+        <option value="">{{ empty_text }}</option>
+        {% for value, text in field.choices %}
+        <option value="{{ value }}" {% if field.data is not none and field.data|string == value|string %}selected{% endif %}>{{ text }}</option>
+        {% endfor %}
+    </select>
+    {% if field.errors %}<small class="field__error">{{ field.errors[0] }}</small>
+    {% elif hint %}<small class="hint">{{ hint }}</small>{% endif %}
+</div>
+{% endmacro %}
+
 {# Lista que depende de otra (carrera según facultad).
    No dibuja opciones: static/js/faculty-major.js las pide a /faculties/<id>/majors
    cada vez que cambia la lista "parent". Si el formulario vuelve con error, o en

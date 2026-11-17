@@ -123,6 +123,19 @@ a.wizard__item:hover { color: var(--bone); border-color: var(--gray); }
 .facts__link { color: var(--coral); }
 .facts__link:hover { text-decoration: underline; }
 
+/* Filtros de Explorar */
+.filters {
+    padding: 20px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    margin-top: 24px;
+}
+
+.filters__fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0 12px; }
+.filters__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.section-title__count { color: var(--gray); font-size: 1rem; }
+
 /* Pantallas pequeñas */
 @media (max-width: 560px) {
     .wizard__text { display: none; }

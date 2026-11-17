@@ -1,7 +1,9 @@
+from datetime import date
+
 from flask import Blueprint, abort, flash, redirect, render_template, url_for
 from flask_login import current_user, login_required
 
-from teamup.choices import PROJECT_OPEN
+from teamup.choices import PROJECT_CANCELLED, PROJECT_DRAFT, PROJECT_FINISHED, PROJECT_OPEN
 from teamup.extensions import db
 from teamup.forms import ActionForm, ProjectDatesForm, ProjectInfoForm, VacancyForm
 from teamup.models.category import category_choices
@@ -187,10 +189,43 @@ def detail(project_id):
     return render_template("project_detail.html", project=project, is_owner=is_owner)
 
 
+# Mis proyectos
+
+@projects.route("/my-projects")
+@login_required
+def mine():
+    own = current_user.projects
+    return render_template(
+        "my_projects.html",
+        drafts=[p for p in own if p.status == PROJECT_DRAFT],
+        active=[p for p in own if p.status not in (PROJECT_DRAFT, PROJECT_FINISHED, PROJECT_CANCELLED)],
+        finished=[p for p in own if p.status == PROJECT_FINISHED],
+        csrf_form=ActionForm(),
+    )
+
+
+@projects.route("/projects/<int:project_id>/finish", methods=["POST"])
+@login_required
+def finish(project_id):
+    project = own_project(project_id)
+
+    if not ActionForm().validate_on_submit():
+        flash("El formulario expiró. Vuelve a intentarlo.", "error")
+    else:
+        error = project.finish(date.today())
+        if error:
+            flash(error, "error")
+        else:
+            db.session.commit()
+            flash(f"«{project.title}» quedó como terminado. Duró {project.duration_days} días."
+                  if project.duration_days is not None else f"«{project.title}» quedó como terminado.", "success")
+    return redirect(url_for("projects.mine"))
+
+
 @projects.route("/projects/<int:project_id>/<any(hide, show, delete):action>", methods=["POST"])
 @login_required
 def project_action(project_id, action):
     # El dueño solo maneja sus proyectos; el administrador usa su propio panel
     project = own_project(project_id)
     apply_project_action(project, action)
-    return redirect(url_for("main.explore"))
+    return redirect(url_for("projects.mine"))
