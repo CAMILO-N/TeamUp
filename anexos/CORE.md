@@ -117,7 +117,13 @@ users >──< skills
     - Listas compartidas en `teamup/choices.py`: `WEEKLY_HOURS` (la disponibilidad del perfil usa **esta misma lista**), `MODALITIES`, estados del proyecto y de las vacantes, y `label()` para mostrar su texto en español.
     - Los proyectos nuevos nacen como `draft`; los que ya existían quedaron como `open`. Mientras no esté el paso 2, el formulario actual publica directo como `open`.
     - Las postulaciones (`applications`) ya se pueden construir sobre `vacancies`.
-2. **Proyecto completo:** crear y editar por pasos, y la página de detalle.
+2. **Proyecto completo:** crear y editar por pasos, y la página de detalle. **Hecho (2026-11-17).**
+    - Rutas en `teamup/controllers/projects.py`: `/projects/new` (paso 1, crea el borrador), `/projects/<id>/info`, `/roles`, `/dates`, `/preview`, `/publish` y el detalle `/projects/<id>`.
+    - Formularios: `ProjectInfoForm`, `VacancyForm` (sin facultad = cualquier carrera) y `ProjectDatesForm`, en `teamup/forms.py`.
+    - Lo que falta para publicar lo decide `Project.missing_for_publish()`; el servidor no publica si falta algo.
+    - Un borrador o un proyecto oculto solo lo ven su dueño y el admin; Explorar muestra solo los `open` no ocultos.
+    - Plantillas: `project_step_*.html`, `project_preview.html`, `project_detail.html`; piezas en `_project_steps.html` y `_projects.html` (el macro `sections` arma el contenido del proyecto). Estilos en `static/css/projects.css`.
+    - **Para Sebastián:** en `_projects.html` (macro `sections`) hay un comentario donde va el botón "Postularme" de cada rol, y en `project_detail.html` otro donde va el número de contacto cuando exista en el perfil.
 3. **Postulaciones:** `applications`, postularse, aceptar o rechazar, Mis proyectos y Mis postulaciones.
 4. **Perfil:** bio, habilidades, disponibilidad, enlaces y perfil público.
 5. **Explorar con filtros.**
@@ -260,6 +266,7 @@ Sin ese archivo la app no arranca y avisa: *"Falta DATABASE_URL"*. La dirección
 | Ver en qué versión está la base | `python -m flask --app run db current` |
 
 **Reglas:**
+- **Antes de cada `db upgrade`, comprobar a qué rama de Neon apunta el `.env`** (`python -m flask --app run db current` y revisar el host en Neon). En la compu siempre va la rama `dev`; la de `production` solo se usa al pasar a `main`.
 - Revisar el archivo que crea `db migrate` antes de aplicarlo: a veces no detecta bien un cambio de nombre.
 - El archivo de la migración se sube a Git en el **mismo commit** que el cambio del modelo.
 - Una migración ya subida a `stage` no se edita: si algo quedó mal, se hace una migración nueva que lo corrige.
