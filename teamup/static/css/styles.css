@@ -61,7 +61,7 @@ a {
     color: var(--coral);
 }
 
-/* Barra superior */
+/* Barra superior (portada) */
 .navbar {
     display: flex;
     justify-content: space-between;
@@ -87,38 +87,99 @@ a {
     font-weight: 500;
 }
 
-.navbar__link--admin {
-    color: var(--ochre);
-    padding: 6px 14px;
-    border: 1px solid rgba(242, 179, 61, 0.45);
-    border-radius: 999px;
-    font-size: 0.9rem;
-    transition: background .15s;
-}
-
-.navbar__link--admin:hover {
-    background: rgba(242, 179, 61, 0.12);
-}
-
-.navbar__profile {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
+/* Barra lateral (dentro de la app) */
+.sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 240px;
+    padding: 24px 16px;
     background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--bone);
-    transition: border-color .15s, box-shadow .15s, color .15s;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
 }
 
-.navbar__profile:hover,
-.navbar__profile:focus-visible {
-    color: var(--coral);
-    border-color: var(--coral);
-    box-shadow: 0 0 18px rgba(228, 87, 46, 0.35);
+/* El contenido deja libre el ancho de la barra */
+.sidebar ~ main {
+    margin-left: 240px;
+}
+
+.sidebar__logo {
+    padding: 0 8px;
+}
+
+.sidebar__logo-img {
+    display: block;
+    height: 48px;
+}
+
+.sidebar__new {
+    text-align: center;
+    padding: 10px 16px;
+}
+
+.sidebar__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sidebar__link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    color: var(--gray);
+    font-weight: 500;
+    transition: background .15s, color .15s;
+}
+
+.sidebar__link:hover,
+.sidebar__link:focus-visible {
+    background: rgba(250, 247, 242, 0.06);
+    color: var(--bone);
     outline: none;
+}
+
+.sidebar__link--active {
+    background: rgba(228, 87, 46, 0.14);
+    color: var(--coral);
+}
+
+.sidebar__link--admin {
+    color: var(--ochre);
+}
+
+.sidebar__link--admin.sidebar__link--active {
+    background: rgba(242, 179, 61, 0.14);
+    color: var(--ochre);
+}
+
+.sidebar__icon {
+    flex: none;
+}
+
+.sidebar__footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.sidebar__user {
+    padding: 0 12px 8px;
+    color: var(--gray);
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar__link--logout:hover {
+    color: #ffb4a3;
 }
 
 /* Portada */
@@ -350,6 +411,69 @@ a {
 
 /* Pantallas pequeñas */
 @media (max-width: 900px) {
+    /* La barra lateral pasa arriba y se desliza de lado */
+    .sidebar {
+        position: sticky;
+        inset: auto;
+        top: 0;
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+        width: auto;
+        padding: 10px 16px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+    }
+
+    .sidebar ~ main {
+        margin-left: 0;
+    }
+
+    .sidebar__logo {
+        flex: none;
+        padding: 0;
+    }
+
+    .sidebar__logo-img {
+        height: 28px;
+    }
+
+    .sidebar__new {
+        flex: none;
+        order: 3;
+        padding: 8px 14px;
+        font-size: 0.85rem;
+    }
+
+    .sidebar__nav,
+    .sidebar__footer {
+        flex-direction: row;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .sidebar__footer {
+        order: 4;
+        margin-top: 0;
+        padding: 0 0 0 8px;
+        border-top: 0;
+        border-left: 1px solid var(--border);
+    }
+
+    .sidebar__link {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+        gap: 6px;
+    }
+
+    .sidebar__user {
+        display: none;
+    }
+
     .navbar {
         padding: 16px;
     }
@@ -366,11 +490,6 @@ a {
 
     .navbar__logo-img {
         height: 26px;
-    }
-
-    /* En pantallas chicas "Mis proyectos" se abre desde Explorar */
-    .navbar__link--my-projects {
-        display: none;
     }
 
     .hero {

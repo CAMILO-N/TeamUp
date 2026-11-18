@@ -2,7 +2,7 @@
 
 > **Este archivo vive solo en `stage` (y en las ramas personales), nunca en `main`.** Ver "Este archivo no va a main" al final.
 >
-> **Estado: propuesta para discutir.** Sale de los apuntes de Camilo y Sebastián. Nada de esto está programado todavía. Lo ya decidido está en "Decisiones tomadas"; lo pendiente, en "Preguntas abiertas".
+> **Estado: en curso.** Sale de los apuntes de Camilo y Sebastián. Lo programado está marcado como **Hecho** en "Orden de trabajo"; lo decidido, en "Decisiones tomadas"; lo pendiente, en "Preguntas abiertas".
 
 ## Qué es "el core"
 
@@ -132,7 +132,12 @@ users >──< skills
     - "Mis proyectos" (`/my-projects`): publicados, borradores y terminados, con sus acciones. "Terminar proyecto" pone `finished_at` y muestra la duración en días (`Project.finish()`; no se puede antes de la fecha de inicio).
     - **Para Sebastián:** en `my_projects.html` hay un comentario donde van las postulaciones de cada proyecto (aceptar o rechazar).
 6. **Notificaciones** (la campana).
-7. **Moderación:** filtro de palabras, reportes y cola de validación del admin.
+7. **Moderación:** filtro de palabras, reportes y cola de validación del admin. **Hecha la parte de Camilo (2026-11-18): filtro de palabras y cola de revisión, aplicado en Neon `dev`.** Los reportes son de Sebastián.
+    - Tablas `banned_words` y `validation_requests` (modelos `BannedWord` y `ValidationRequest`).
+    - Al **publicar**, y al **editar** un proyecto ya publicado (paso 1 o un rol nuevo), se buscan las palabras del filtro en el título, los resúmenes y los nombres de los roles. Cuentan como palabra completa y sin importar mayúsculas ni tildes ("estafa" marca "Estafá", no "estafador"). Si aparece alguna, el proyecto pasa a `pending_review`, sale de Explorar y entra en la cola.
+    - Panel del admin con dos pestañas nuevas: **Revisión** (aprobar o rechazar) y **Palabras** (agregar y quitar). Aprobar devuelve el proyecto al estado que tenía (`open`, `in_progress`…); rechazar lo vuelve `draft` y el dueño ve el motivo en la vista previa.
+    - En la barra lateral, "Admin" lleva al panel.
+    - **Para Sebastián (reportes):** ver la respuesta a la pregunta 2 en "Preguntas abiertas".
 
 Del 1 al 3 es el core mínimo para presentar.
 
@@ -204,7 +209,15 @@ fix(auth): corrige el login con mayusculas - CN
 ## Preguntas abiertas
 
 1. **Para Sebastián:** ¿hace las notificaciones?
-2. **Para Sebastián:** ¿cómo pasa un proyecto reportado a la cola de validación del admin?
+2. **Para Sebastián:** ¿cómo pasa un proyecto reportado a la cola de validación del admin? **Propuesta de Camilo (ya programada):** cuando decidas que un reporte debe llegar al admin, llama a:
+
+    ```python
+    from teamup.choices import REVIEW_REPORT
+    project.send_to_review(REVIEW_REPORT, "Reportado por @usuario: motivo")
+    db.session.commit()
+    ```
+
+    Eso saca el proyecto de Explorar y lo pone en la pestaña "Revisión" con ese texto como motivo. Si ya hay un reporte pendiente de ese proyecto, actualiza el mismo pedido en lugar de crear otro. Tú decides cuándo llamarlo (con el primer reporte, a partir de varios…) y guardas los reportes en tus tablas.
 
 ## Convenciones de código
 

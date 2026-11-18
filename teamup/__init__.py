@@ -45,7 +45,7 @@ def create_app():
     login_manager.login_message = "Inicia sesión para continuar."
 
     # Se importan los modelos para que Flask-Migrate conozca sus tablas
-    from teamup.models import category, faculty, major, project, role, user, vacancy
+    from teamup.models import banned_word, category, faculty, major, project, role, user, vacancy, validation_request
 
     @login_manager.user_loader
     def load_user(user_id):

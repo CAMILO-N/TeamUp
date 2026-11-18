@@ -42,6 +42,16 @@ def own_project(project_id):
     return project
 
 
+IN_REVIEW_MESSAGE = "Tu proyecto quedó en revisión: un administrador lo revisará antes de que aparezca en Explorar."
+
+
+def review_after_edit(project):
+    """Un proyecto ya publicado que se edita vuelve a pasar por el filtro de palabras."""
+    if not project.is_draft and project.check_banned_words():
+        db.session.commit()
+        flash(IN_REVIEW_MESSAGE, "info")
+
+
 def next_step(project, step):
     """En un borrador se sigue al paso siguiente; en uno publicado se vuelve a la vista previa."""
     return url_for(step if project.is_draft else "projects.preview", project_id=project.id)
@@ -80,6 +90,7 @@ def info(project_id):
         project.description = form.description.data
         project.category_id = form.category.data
         db.session.commit()
+        review_after_edit(project)
         return redirect(next_step(project, "projects.roles"))
 
     return render_template("project_step_info.html", form=form, project=project)
@@ -103,6 +114,7 @@ def roles(project_id):
         ))
         db.session.commit()
         flash(f"Se agregó el rol «{form.role_name.data}».", "success")
+        review_after_edit(project)
         return redirect(url_for("projects.roles", project_id=project.id))
 
     return render_template("project_step_roles.html", form=form, project=project, csrf_form=ActionForm())
@@ -170,9 +182,13 @@ def publish(project_id):
         return redirect(url_for("projects.preview", project_id=project.id))
 
     if project.is_draft:
-        project.status = PROJECT_OPEN
+        # Con una palabra del filtro queda en revisión; si no, se publica
+        if project.check_banned_words():
+            flash(IN_REVIEW_MESSAGE, "info")
+        else:
+            project.status = PROJECT_OPEN
+            flash("Tu proyecto ya está publicado.", "success")
         db.session.commit()
-        flash("Tu proyecto ya está publicado.", "success")
     return redirect(url_for("projects.detail", project_id=project.id))
 
 

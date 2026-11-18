@@ -26,10 +26,7 @@
                     <h1 class="explore__title">Hola, <span class="highlight">{{ current_user.first_name }}</span>.</h1>
                     <p class="explore__text">Aquí vas a encontrar los proyectos de tu campus.</p>
                 </div>
-                <div class="form-actions">
-                    <a href="{{ url_for('projects.mine') }}" class="btn btn--secondary">Mis proyectos</a>
-                    <a href="{{ url_for('projects.new') }}" class="btn btn--primary"><span class="btn__arrow">+</span> Nuevo proyecto</a>
-                </div>
+                <a href="{{ url_for('projects.new') }}" class="btn btn--primary"><span class="btn__arrow">+</span> Nuevo proyecto</a>
             </div>
 
             {% include "_flash.html" %}

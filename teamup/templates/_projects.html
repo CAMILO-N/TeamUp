@@ -5,6 +5,7 @@
 {% macro status_badge(project) %}
 {% if project.is_hidden %}<span class="badge badge--off">Oculto</span>
 {% elif project.is_draft %}<span class="badge badge--draft">{{ project.status_label }}</span>
+{% elif project.is_in_review %}<span class="badge badge--review">{{ project.status_label }}</span>
 {% else %}<span class="badge badge--ok">{{ project.status_label }}</span>{% endif %}
 {% endmacro %}
 

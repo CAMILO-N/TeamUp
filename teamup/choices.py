@@ -40,6 +40,25 @@ VACANCY_STATUSES = [
     (VACANCY_CLOSED, "Cerrada"),
 ]
 
+# Cola de revisión del admin: de dónde viene cada pedido y en qué quedó
+REVIEW_BANNED_WORDS = "banned_words"
+REVIEW_REPORT = "report"
+
+REVIEW_SOURCES = [
+    (REVIEW_BANNED_WORDS, "Filtro de palabras"),
+    (REVIEW_REPORT, "Reporte"),
+]
+
+REVIEW_PENDING = "pending"
+REVIEW_APPROVED = "approved"
+REVIEW_REJECTED = "rejected"
+
+REVIEW_STATUSES = [
+    (REVIEW_PENDING, "Pendiente"),
+    (REVIEW_APPROVED, "Aprobado"),
+    (REVIEW_REJECTED, "Rechazado"),
+]
+
 
 def label(choices, value):
     """Texto en español de un valor de la lista; si no está, el mismo valor."""

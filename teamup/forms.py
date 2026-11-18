@@ -10,6 +10,7 @@ from wtforms.validators import (
 
 from teamup.choices import MODALITIES, WEEKLY_HOURS
 from teamup.extensions import db
+from teamup.models.banned_word import BannedWord, normalize
 from teamup.models.category import Category
 from teamup.models.faculty import Faculty
 from teamup.models.major import Major
@@ -272,6 +273,21 @@ class ExploreFilterForm(FlaskForm):
             "modality": self.modality.data if self.modality.data in dict(MODALITIES) else None,
             "weekly_hours": self.weekly_hours.data if self.weekly_hours.data in dict(WEEKLY_HOURS) else None,
         }
+
+
+class BannedWordForm(FlaskForm):
+    """El admin agrega una palabra (o frase corta) al filtro."""
+
+    word = StringField("Palabra", filters=[strip_spaces, lowercase], validators=[
+        DataRequired("Escribe una palabra."),
+        Length(min=2, max=40, message="De 2 a 40 caracteres."),
+        Regexp(r"^[^\W\d_]+( [^\W\d_]+)*$", message="Solo letras, con un espacio entre palabras."),
+    ])
+
+    def validate_word(self, field):
+        # Sin tildes para que "más" y "mas" no queden repetidas
+        if any(normalize(banned.word) == normalize(field.data) for banned in BannedWord.query.all()):
+            raise ValidationError("Esa palabra ya está en el filtro.")
 
 
 class ActionForm(FlaskForm):
