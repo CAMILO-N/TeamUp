@@ -1,5 +1,6 @@
 {# Detalle de un proyecto. Lo ve cualquiera si está publicado; un borrador u oculto, solo su dueño y el admin.
    Espera: project, is_owner y csrf_form (solo para el dueño, que ve además el panel de gestión).
+   Un proyecto terminado es solo para ver: la gestión muestra si está en la Vitrina, sin botones.
    Envía (POST, sin campos): projects.change_status con change = start | reopen | finish,
    y projects.project_action con action = hide | show | delete #}
 {% from "_fields.html" import csrf_input %}
@@ -130,7 +131,7 @@
                         {% elif project.is_in_review %}Un administrador lo está revisando antes de que aparezca en Explorar.
                         {% elif project.status == "open" %}Aparece en Explorar y busca gente. Cuando el equipo esté listo, arráncalo.
                         {% elif project.status == "in_progress" %}El equipo está trabajando y ya no aparece en Explorar. Si alguien se va, vuelve a buscar gente.
-                        {% elif project.status == "finished" %}Terminó{% if project.duration_days is not none %} después de {{ project.duration_days }} día{{ '' if project.duration_days == 1 else 's' }}{% endif %}. Aparece en la Vitrina.
+                        {% elif project.is_finished %}Terminó{% if project.duration_days is not none %} después de {{ project.duration_days }} día{{ '' if project.duration_days == 1 else 's' }}{% endif %}. Ya no se puede editar ni cambiar de estado.
                         {% endif %}
                     </p>
 
@@ -154,7 +155,17 @@
                     </div>
                     {% endif %}
 
+                    {% if project.is_finished %}
+                    {% set showcase = project.showcase_status %}
+                    <p class="manage__showcase manage__showcase--{{ showcase or 'none' }}">
+                        {% if showcase == "approved" %}Aparece en la Vitrina.
+                        {% elif showcase == "pending" %}Esperando que un administrador lo apruebe para la Vitrina.
+                        {% elif showcase == "rejected" %}Un administrador no lo aprobó para la Vitrina.
+                        {% else %}No está en la Vitrina.{% endif %}
+                    </p>
+                    {% else %}
                     <div class="manage__more">{{ actions(project, "projects", csrf_form) }}</div>
+                    {% endif %}
                 </section>
                 {% endif %}
 
@@ -183,7 +194,7 @@
         </div>
     </main>
 
-    {% if is_owner %}
+    {% if is_owner and not project.is_finished %}
     {% include "_delete_dialog.html" %}
     <script src="{{ url_for('static', filename='js/confirm-delete.js') }}"></script>
     {% endif %}

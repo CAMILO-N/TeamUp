@@ -1,6 +1,6 @@
 from datetime import date
 
-from flask import Blueprint, abort, flash, redirect, render_template, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from teamup.choices import PROJECT_CANCELLED, PROJECT_DRAFT, PROJECT_FINISHED, PROJECT_OPEN
@@ -12,6 +12,24 @@ from teamup.models.project import Project
 from teamup.models.vacancy import Vacancy
 
 projects = Blueprint("projects", __name__)
+
+# Lo que el dueño ya no puede hacer con un proyecto terminado: editarlo, cambiar su estado, ocultarlo o borrarlo
+LOCKED_WHEN_FINISHED = {
+    "projects.info", "projects.roles", "projects.delete_role", "projects.dates", "projects.preview",
+    "projects.publish", "projects.change_status", "projects.project_action",
+}
+
+
+@projects.before_request
+def finished_is_read_only():
+    """Un proyecto terminado solo se puede ver. El admin lo sigue manejando desde su panel."""
+    if request.endpoint in LOCKED_WHEN_FINISHED and current_user.is_authenticated:
+        project = db.session.get(Project, request.view_args.get("project_id"))
+        if project is not None and project.is_finished:
+            flash("Un proyecto terminado ya no se puede cambiar: solo se puede ver.", "error")
+            return redirect(url_for("projects.detail", project_id=project.id))
+    return None
+
 
 
 def apply_project_action(project, action):

@@ -107,11 +107,17 @@ def decide_review(review_id, decision):
     elif decision == "approve":
         review.approve(current_user)
         db.session.commit()
-        flash(f"«{review.project.title}» fue aprobado y vuelve a estar {review.project.status_label.lower()}.", "success")
+        if review.is_showcase:
+            flash(f"«{review.project.title}» ya aparece en la Vitrina.", "success")
+        else:
+            flash(f"«{review.project.title}» fue aprobado y vuelve a estar {review.project.status_label.lower()}.", "success")
     else:
         review.reject(current_user)
         db.session.commit()
-        flash(f"«{review.project.title}» fue rechazado y volvió a borrador.", "success")
+        if review.is_showcase:
+            flash(f"«{review.project.title}» no entra a la Vitrina.", "success")
+        else:
+            flash(f"«{review.project.title}» fue rechazado y volvió a borrador.", "success")
 
     return redirect(url_for("admin.reviews"))
 
