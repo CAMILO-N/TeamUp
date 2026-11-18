@@ -24,17 +24,58 @@
 </div>
 {% endmacro %}
 
-{# Tarjeta de Explorar y de Mis proyectos #}
-{% macro card(project, show_owner=true) %}
-<article class="project-card{{ ' project-card--hidden' if project.is_hidden }}">
-    {% if project.category %}<span class="chip-tag">{{ project.category.name }}</span>{% endif %}
+{# Iconos pequeños de las tarjetas #}
+{% macro card_icon(name) %}
+<svg class="project-card__icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    {% if name == "pin" %}<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle>
+    {% elif name == "clock" %}<circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>
+    {% elif name == "people" %}<circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.3c2.1.7 3.5 2.6 3.5 5.7"></path>
+    {% endif %}
+</svg>
+{% endmacro %}
+
+{# Tarjeta de Explorar, la Vitrina, Mis proyectos y el perfil público.
+   featured = true la resalta (sección "Para ti" de Explorar). Lo que va dentro del {% call %} se agrega al final.
+   data = atributos data-* para el filtro instantáneo de Explorar; hidden = empieza escondida. #}
+{% macro card(project, show_owner=true, featured=false, data=none, hidden=false) %}
+{% set open_roles = project.vacancies|selectattr("is_open")|list if project.status == "open" else [] %}
+<article class="project-card{{ ' project-card--hidden' if project.is_hidden }}{{ ' project-card--featured' if featured }}"
+    {%- if data %}{% for key, value in data.items() %} data-{{ key }}="{{ value }}"{% endfor %}{% endif %}{{ ' hidden' if hidden }}>
+    <div class="project-card__top">
+        <span class="project-card__mark" aria-hidden="true">{{ project.initials }}</span>
+        {% if project.category %}<span class="chip-tag">{{ project.category.name }}</span>{% endif %}
+    </div>
     <h3 class="project-card__title"><a href="{{ url_for('projects.detail', project_id=project.id) }}" class="project-card__link">{{ project.title }}</a></h3>
     <p class="project-card__text">{{ project.summary or project.description }}</p>
+
     {% if project.modality or project.weekly_hours %}
-    <p class="project-card__meta">{{ [project.modality_label if project.modality, project.weekly_hours_label if project.weekly_hours]|select|join(' · ') }}</p>
+    <ul class="project-card__facts">
+        {% if project.modality %}<li class="project-card__fact">{{ card_icon("pin") }}{{ project.modality_label }}</li>{% endif %}
+        {% if project.weekly_hours %}<li class="project-card__fact">{{ card_icon("clock") }}{{ project.weekly_hours_label }}</li>{% endif %}
+    </ul>
     {% endif %}
-    {% if project.vacancies %}<p class="project-card__meta">{{ project.vacancies|length }} rol{{ '' if project.vacancies|length == 1 else 'es' }} buscado{{ '' if project.vacancies|length == 1 else 's' }}</p>{% endif %}
-    {% if show_owner and project.owner %}<p class="project-card__owner">por <span class="highlight">@{{ project.owner.username }}</span></p>{% endif %}
+
+    {# Mientras busca gente se ven sus roles abiertos; si no, cuántos roles tiene #}
+    {% if open_roles %}
+    <ul class="project-card__roles">
+        {% for vacancy in open_roles[:3] %}<li class="project-card__role">{{ vacancy.role_name }}</li>{% endfor %}
+        {% if open_roles|length > 3 %}<li class="project-card__role project-card__role--more">+{{ open_roles|length - 3 }}</li>{% endif %}
+    </ul>
+    {% elif project.vacancies %}
+    <p class="project-card__meta">{{ project.vacancies|length }} rol{{ '' if project.vacancies|length == 1 else 'es' }}</p>
+    {% endif %}
+
+    {% if show_owner and project.owner %}
+    <div class="project-card__bottom">
+        <span class="project-card__owner">
+            <span class="person__avatar person__avatar--xs" aria-hidden="true">{{ project.owner.initials }}</span>
+            @{{ project.owner.username }}
+        </span>
+        {% if project.status == "open" and project.free_slots %}
+        <span class="project-card__slots">{{ card_icon("people") }}{{ project.free_slots }} libre{{ '' if project.free_slots == 1 else 's' }}</span>
+        {% endif %}
+    </div>
+    {% endif %}
     {{ caller() if caller }}
 </article>
 {% endmacro %}

@@ -124,8 +124,17 @@ users >──< skills
     - Un borrador o un proyecto oculto solo lo ven su dueño y el admin; Explorar muestra solo los `open` no ocultos.
     - Plantillas: `project_step_*.html`, `project_preview.html`, `project_detail.html`; piezas en `_project_steps.html` y `_projects.html` (el macro `sections` arma el contenido del proyecto). Estilos en `static/css/projects.css`.
     - **Para Sebastián:** en `_projects.html` (macro `sections`) hay un comentario donde va el botón "Postularme" de cada rol, y en `project_detail.html` otro donde va el número de contacto cuando exista en el perfil.
-3. **Postulaciones:** `applications`, postularse, aceptar o rechazar, Mis proyectos y Mis postulaciones.
-4. **Perfil:** bio, habilidades, disponibilidad, enlaces y perfil público.
+3. **Postulaciones:** `applications`, postularse, aceptar o rechazar, Mis proyectos y Mis postulaciones. **Hecho (2026-11-18), migración `b3f1c9d27e54` (falta aplicarla en Neon `dev`).**
+    - Modelo `Application` (`teamup/models/application.py`), rutas en `teamup/controllers/applications.py`.
+    - Postularse: `/vacancies/<id>/apply`, con un mensaje (20 a 1000 caracteres). Las reglas están en `Vacancy.apply_blocker()`: no a tu propio proyecto, solo si el proyecto está `open`, si el rol tiene lugar y si es de tu carrera (o "cualquier carrera"). Una fila por persona y rol (`UniqueConstraint`); quien se retiró puede volver a postular con la misma fila.
+    - Aceptar o rechazar: `POST /applications/<id>/accept|reject`, solo el creador. Al aceptar, el servidor bloquea la vacante (`with_for_update`) y vuelve a contar los cupos. Un rol lleno pasa a `closed` y vuelve a `open` si alguien se va (`Vacancy.update_status()`).
+    - El creador ve las postulaciones de cada rol en `/projects/<id>/applications` (con el correo y el número de quien se postula). Se llega desde el panel "Gestión" y desde "Mis proyectos", que muestra cuántas hay nuevas.
+    - "Mis postulaciones" (`/my-applications`): en el equipo, esperando respuesta y cerradas. Se puede retirar una pendiente o salir del equipo (mientras el proyecto no termine).
+    - En la página del proyecto: "Postularme" en cada rol, los lugares libres, y en "Equipo actual" las postulaciones aceptadas con su rol.
+4. **Perfil:** bio, habilidades, disponibilidad, enlaces y perfil público. **Hecho (2026-11-18), en la misma migración.**
+    - Columnas nuevas en `users`: `bio`, `availability` (lista `WEEKLY_HOURS`), `phone`, `portfolio_url`, `linkedin_url`. Tablas `skills` y `user_skills` (`teamup/models/skill.py`).
+    - En "Mi perfil" las habilidades se escriben separadas por comas (máximo 10, sin repetir aunque cambien las mayúsculas).
+    - Perfil público: `/users/<usuario>`, con sobre mí, habilidades, disponibilidad, enlaces, proyectos creados y en los que participa. Los números (creados, participa, realizados) se cuentan, no se guardan. El número de contacto no sale aquí: solo en la página de sus proyectos y para quien revisa sus postulaciones.
 5. **Explorar con filtros.** **Hecho (2026-11-17), junto con "Mis proyectos" y terminar un proyecto.**
     - Filtros por categoría, facultad, carrera, modalidad y dedicación, por `GET` (quedan en la dirección). Los valores que no existen se ignoran (`ExploreFilterForm.filters()`); la búsqueda está en `Project.search()`.
     - Por facultad o carrera salen los proyectos con un rol abierto para esa carrera **o para cualquier carrera**.
@@ -140,13 +149,17 @@ users >──< skills
     - **Vitrina (`/showcase`):** muestra los terminados que **el admin aprobó**. Al terminar un proyecto se crea un pedido en la cola "Revisión" con el motivo "Vitrina" (`Project.request_showcase()`). Aprobar pone `in_showcase = True`; rechazar lo deja terminado pero fuera de la Vitrina. Los que ya estaban terminados antes de esta migración entraron solos a la cola.
     - La página del proyecto sigue el diseño de Figma: portada con categoría y estado, "La idea", roles, "Creado por" (sin "Enviar mensaje": el contacto es el correo) y "Equipo actual".
     - **Para Sebastián:** en `project_detail.html` hay comentarios donde van el botón "Postularme" (solo si el proyecto está `open` y no es del usuario), el "Sobre mí" y el número del creador, y los integrantes aceptados en "Equipo actual". En `my_projects.html` puede ir cuántas postulaciones nuevas tiene cada proyecto.
-6. **Notificaciones** (la campana).
+6. **Notificaciones** (la campana). **Hecho (2026-11-18, Sebastián), migración `c7d2e8a41f90`.**
+    - Tabla `notifications` (modelo `Notification`, `teamup/models/notification.py`). Para avisar a alguien: `Notification.send(usuario, "texto", url_for(...))` y luego `db.session.commit()`.
+    - Campana arriba a la derecha con el número sin leer, y "Notificaciones" en la barra lateral (en celular la franja de arriba se oculta). El número lo pone el `context_processor` de `teamup/__init__.py` (`unread_notifications`).
+    - Página `/notifications`: los 50 avisos más nuevos. Sin JavaScript: cada aviso es un botón (`POST /notifications/<id>/open`) que lo marca como leído y lleva a su enlace; "Marcar todas como leídas" (`POST /notifications/read-all`).
+    - Se avisa cuando: alguien se postula a tu proyecto, te aceptan o rechazan, alguien sale de tu equipo, tu proyecto recibe un reporte (sin decir quién), el admin aprueba o rechaza una revisión (también la Vitrina) y el proyecto en el que estás arranca o termina. Las dos últimas son una línea en `controllers/admin.py` (`notify_review`) y en `change_status` de `controllers/projects.py`.
 7. **Moderación:** filtro de palabras, reportes y cola de validación del admin. **Hecha la parte de Camilo (2026-11-18): filtro de palabras y cola de revisión, aplicado en Neon `dev`.** Los reportes son de Sebastián.
     - Tablas `banned_words` y `validation_requests` (modelos `BannedWord` y `ValidationRequest`).
     - Al **publicar**, y al **editar** un proyecto ya publicado (paso 1 o un rol nuevo), se buscan las palabras del filtro en el título, los resúmenes y los nombres de los roles. Cuentan como palabra completa y sin importar mayúsculas ni tildes ("estafa" marca "Estafá", no "estafador"). Si aparece alguna, el proyecto pasa a `pending_review`, sale de Explorar y entra en la cola.
     - Panel del admin con dos pestañas nuevas: **Revisión** (aprobar o rechazar) y **Palabras** (agregar y quitar). Aprobar devuelve el proyecto al estado que tenía (`open`, `in_progress`…); rechazar lo vuelve `draft` y el dueño ve el motivo en la vista previa.
     - En la barra lateral, "Admin" lleva al panel.
-    - **Para Sebastián (reportes):** ver la respuesta a la pregunta 2 en "Preguntas abiertas".
+    - **Reportes (Sebastián, 2026-11-18):** tabla `reports` (modelo `Report`, rutas en `teamup/controllers/reports.py`). En la página de un proyecto ajeno, abierto o en curso, está "Reportar este proyecto" (`/projects/<id>/report`): motivo de una lista (`REPORT_REASONS`) y detalle opcional ("Otro motivo" lo pide). Cada persona reporta un proyecto una sola vez. **Con el primer reporte** el proyecto va a la cola con `send_to_review(REVIEW_REPORT, …)`; el motivo lista los reportes que el admin todavía no revisó. Los terminados no se reportan porque ya pasaron por el admin para la Vitrina.
 
 Del 1 al 3 es el core mínimo para presentar.
 
@@ -159,7 +172,7 @@ Cada uno hace **su parte completa: back-end y front-end** (modelos, rutas, valid
 | Flask-Migrate (primero, porque lo usan los dos) | Perfil: sobre mí, habilidades, disponibilidad, número, enlaces y perfil público |
 | Proyectos: tablas (`projects`, `categories`, `vacancies`), crear y editar por pasos, detalle | Postulaciones: `applications`, postularse, aceptar o rechazar, Mis postulaciones |
 | Cómo se ven los proyectos: Explorar, tarjetas, filtros, Mis proyectos | Reportes: los organiza él |
-| Administración: filtro de palabras, cola de validación y panel | Lo demás que falte (por confirmar): notificaciones |
+| Administración: filtro de palabras, cola de validación y panel | Notificaciones (hechas) |
 
 **Dependencias (quién espera a quién):**
 - Las postulaciones van sobre las vacantes, así que **Camilo hace primero `vacancies`** y Sebastián después `applications`.
@@ -211,13 +224,13 @@ fix(auth): corrige el login con mayusculas - CN
 - **Reportes:** los organiza Sebastián.
 - **Reparto:** cada uno hace back-end y front-end de su parte (ver "Reparto").
 - **Categorías:** una categoría por proyecto, elegida de un dropdown (no etiquetas).
-- **Sin más JavaScript:** lo nuevo se resuelve con Flask (formularios que se envían al servidor).
+- **JavaScript solo si hace falta (cambió el 2026-11-18, acordado entre Camilo y Sebastián):** lo normal se sigue resolviendo con Flask (formularios que se envían al servidor). Se agrega JavaScript cuando mejora algo que el servidor no puede, como el filtro instantáneo de Explorar.
 - **Disponibilidad:** horas por semana, elegidas de una lista (1–2 h, 3–4 h…). La dedicación semanal del proyecto usa la misma lista.
 - **Crear proyecto por pasos:** una página por paso (Información → Roles → Fechas → Vista previa). El proyecto se guarda como borrador (`draft`) desde el paso 1, cada paso se valida en el servidor y en "Vista previa" se publica.
 
 ## Preguntas abiertas
 
-1. **Para Sebastián:** ¿hace las notificaciones?
+1. **Para Sebastián:** ¿hace las notificaciones? **Sí, hechas (ver el paso 6).**
 2. **Para Sebastián:** ¿cómo pasa un proyecto reportado a la cola de validación del admin? **Propuesta de Camilo (ya programada):** cuando decidas que un reporte debe llegar al admin, llama a:
 
     ```python
@@ -227,6 +240,8 @@ fix(auth): corrige el login con mayusculas - CN
     ```
 
     Eso saca el proyecto de Explorar y lo pone en la pestaña "Revisión" con ese texto como motivo. Si ya hay un reporte pendiente de ese proyecto, actualiza el mismo pedido en lugar de crear otro. Tú decides cuándo llamarlo (con el primer reporte, a partir de varios…) y guardas los reportes en tus tablas.
+
+    **Respuesta (Sebastián, 2026-11-18):** se usa tal cual, desde `Project.report()`, con el primer reporte. Ver "Reportes" en el paso 7.
 
 ## Convenciones de código
 
@@ -248,7 +263,7 @@ Reglas para todo lo que se escriba en el repo, a mano o con ayuda de un asistent
 
 **Reglas**
 - **Toda validación se hace en el servidor.** Los formularios llevan `novalidate`; nunca se confía en lo que valida el navegador.
-- **Nada de JavaScript nuevo.** Lo nuevo se resuelve con formularios que se envían a Flask. Solo se mantienen los dos archivos que ya existen (`faculty-major.js` y `confirm-delete.js`).
+- **JavaScript solo si hace falta.** Lo normal se resuelve con formularios que se envían a Flask. Si se agrega JavaScript: un archivo por función en `static/js/`, comentado en español, y **la página tiene que funcionar igual sin él** (las reglas y los permisos siguen en el servidor). Archivos: `faculty-major.js`, `confirm-delete.js` y `explore-filters.js` (filtra las tarjetas de Explorar al instante con sus `data-*`, que arma `filter_data()` en `controllers/main.py`; si cambian las reglas de `Project.search()`, hay que cambiar las dos).
 - **En las plantillas, las direcciones siempre van con `url_for`,** nunca escritas a mano.
 - **Clases CSS con BEM:** `bloque__elemento--modificador` (por ejemplo `project-card__title`, `btn--primary`). Cada elemento con estilo lleva su clase; no se usan selectores por etiqueta como `.hero h1`.
 - **Los botones sueltos** (ocultar, borrar, aceptar…) van en un `<form method="POST">` con el token CSRF de `ActionForm`.

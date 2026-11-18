@@ -8,6 +8,7 @@ from teamup.extensions import db
 from teamup.forms import ActionForm, ProjectDatesForm, ProjectInfoForm, VacancyForm
 from teamup.models.category import category_choices
 from teamup.models.faculty import faculty_choices
+from teamup.models.notification import Notification
 from teamup.models.project import Project
 from teamup.models.vacancy import Vacancy
 
@@ -255,6 +256,12 @@ def change_status(project_id, change):
     if error:
         flash(error, "error")
     else:
+        # El equipo (las postulaciones aceptadas) se entera de que el proyecto arrancó o terminó
+        if change in ("start", "finish"):
+            text = (f"«{project.title}» arrancó: el equipo ya está completo." if change == "start"
+                    else f"«{project.title}» terminó. ¡Gracias por ser parte del equipo!")
+            for member in project.members:
+                Notification.send(member.user, text, url_for("projects.detail", project_id=project.id))
         db.session.commit()
         if change == "start":
             flash(f"«{project.title}» arrancó. Ya no aparece en Explorar.", "success")

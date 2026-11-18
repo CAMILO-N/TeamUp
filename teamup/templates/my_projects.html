@@ -15,7 +15,8 @@
         {% else %}
         <a href="{{ url_for('projects.detail', project_id=p.id) }}" class="btn btn--secondary btn--sm">{{ 'Ver' if p.is_finished else 'Gestionar' }}</a>
         {% endif %}
-        {# Aquí puede ir cuántas postulaciones nuevas tiene cada proyecto (lo hace Sebastián) #}
+        {% set waiting = p.pending_applications|length %}
+        {% if waiting %}<a href="{{ url_for('applications.manage', project_id=p.id) }}" class="count-pill">{{ waiting }} postulaci{{ 'ón nueva' if waiting == 1 else 'ones nuevas' }}</a>{% endif %}
     </div>
     {% endcall %}
     {% endfor %}

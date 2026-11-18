@@ -2,7 +2,9 @@
    Espera: project, is_owner y csrf_form (solo para el dueño, que ve además el panel de gestión).
    Un proyecto terminado es solo para ver: la gestión muestra si está en la Vitrina, sin botones.
    Envía (POST, sin campos): projects.change_status con change = start | reopen | finish,
-   y projects.project_action con action = hide | show | delete #}
+   y projects.project_action con action = hide | show | delete.
+   Postulaciones: quien no es el dueño ve "Postularme" en cada rol con lugar (va a applications.apply);
+   el dueño ve el enlace a sus postulaciones (applications.manage). El equipo son las postulaciones aceptadas. #}
 {% from "_fields.html" import csrf_input %}
 {% from "_projects.html" import status_badge, actions %}
 
@@ -53,7 +55,7 @@
                     {% if project.weekly_hours %}<li class="detail-hero__fact">{{ icon("clock") }}{{ project.weekly_hours_label }}</li>{% endif %}
                     {% if project.modality %}<li class="detail-hero__fact">{{ icon("pin") }}{{ project.modality_label }}</li>{% endif %}
                     {# Los lugares libres solo importan mientras busca gente #}
-                    {% if project.vacancies and project.status == "open" %}<li class="detail-hero__fact">{{ icon("people") }}{{ project.total_slots }} lugar{{ '' if project.total_slots == 1 else 'es' }} en {{ project.vacancies|length }} rol{{ '' if project.vacancies|length == 1 else 'es' }}</li>
+                    {% if project.vacancies and project.status == "open" %}<li class="detail-hero__fact">{{ icon("people") }}{{ project.free_slots }} lugar{{ '' if project.free_slots == 1 else 'es' }} libre{{ '' if project.free_slots == 1 else 's' }} en {{ project.vacancies|length }} rol{{ '' if project.vacancies|length == 1 else 'es' }}</li>
                     {% elif project.vacancies %}<li class="detail-hero__fact">{{ icon("people") }}{{ project.vacancies|length }} rol{{ '' if project.vacancies|length == 1 else 'es' }}</li>{% endif %}
                 </ul>
             </div>
@@ -89,8 +91,20 @@
                                 <p class="role__name">{{ vacancy.role_name }}</p>
                                 <p class="role__meta">{{ vacancy.major_label }} · {{ 'Con experiencia' if vacancy.requires_experience else 'Sin experiencia necesaria' }}</p>
                             </div>
-                            {% if project.status == "open" %}<span class="role__slots">{{ vacancy.slots }} lugar{{ '' if vacancy.slots == 1 else 'es' }}</span>{% endif %}
-                            {# Aquí va el botón "Postularme" de cada rol (lo hace Sebastián con las postulaciones; solo si el proyecto está abierto y no es del usuario) #}
+                            {% if project.status == "open" %}<span class="role__slots">{{ vacancy.free_slots }} de {{ vacancy.slots }} libre{{ '' if vacancy.slots == 1 else 's' }}</span>{% endif %}
+                            {# Postularme: solo si el proyecto está abierto y no es del usuario. Las reglas las vuelve a revisar el servidor #}
+                            {% if not is_owner and project.status == "open" and not project.is_hidden %}
+                            {% set mine = vacancy.application_of(current_user) %}
+                            {% if mine and not mine.is_withdrawn %}
+                            <a href="{{ url_for('applications.mine') }}" class="badge app-status app-status--{{ mine.status }}">{{ mine.status_label }}</a>
+                            {% elif vacancy.free_slots == 0 %}
+                            <span class="badge badge--off">Completo</span>
+                            {% elif vacancy.apply_blocker(current_user) is none %}
+                            <a href="{{ url_for('applications.apply', vacancy_id=vacancy.id) }}" class="btn btn--primary btn--sm">Postularme</a>
+                            {% else %}
+                            <span class="role__note">Solo para {{ vacancy.major_label }}</span>
+                            {% endif %}
+                            {% endif %}
                         </li>
                         {% endfor %}
                     </ul>
@@ -158,6 +172,13 @@
                     </div>
                     {% endif %}
 
+                    {% if not project.is_draft %}
+                    {% set waiting = project.pending_applications|length %}
+                    <a href="{{ url_for('applications.manage', project_id=project.id) }}" class="btn btn--secondary manage__btn manage__applications">
+                        Postulaciones{% if waiting %} <span class="count-pill">{{ waiting }} nueva{{ '' if waiting == 1 else 's' }}</span>{% endif %}
+                    </a>
+                    {% endif %}
+
                     {% if project.is_finished %}
                     {% set showcase = project.showcase_status %}
                     <p class="manage__showcase manage__showcase--{{ showcase or 'none' }}">
@@ -177,12 +198,14 @@
                     <div class="person">
                         <span class="person__avatar" aria-hidden="true">{{ project.owner.initials }}</span>
                         <div>
-                            <p class="person__name">{{ project.owner.first_name }} {{ project.owner.last_name }}</p>
+                            <a href="{{ url_for('profile.public', username=project.owner.username) }}" class="person__name person__link">{{ project.owner.full_name }}</a>
                             <p class="person__meta">{{ project.owner.major.name }} · {{ project.owner.semester }}.º semestre</p>
                         </div>
                     </div>
-                    {# Aquí va el "Sobre mí" del perfil y el número de contacto, cuando existan (lo hace Sebastián) #}
+                    {% if project.owner.bio %}<p class="person__bio">{{ project.owner.bio|truncate(220) }}</p>{% endif %}
+                    {# Contacto: el correo institucional y, si lo puso en su perfil, el número #}
                     <a href="mailto:{{ project.owner.email }}" class="person__contact">{{ project.owner.email }}</a>
+                    {% if project.owner.phone %}<a href="tel:{{ project.owner.phone }}" class="person__contact person__phone">{{ project.owner.phone }}</a>{% endif %}
                 </section>
 
                 <section class="profile-card">
@@ -195,10 +218,23 @@
                                 <p class="person__meta">Creador del proyecto</p>
                             </div>
                         </li>
-                        {# Aquí van los integrantes aceptados en las postulaciones, con su rol (lo hace Sebastián) #}
+                        {# Los integrantes son las postulaciones aceptadas, con su rol #}
+                        {% for member in project.members %}
+                        <li class="team__member">
+                            <span class="person__avatar person__avatar--sm person__avatar--member" aria-hidden="true">{{ member.user.initials }}</span>
+                            <div>
+                                <a href="{{ url_for('profile.public', username=member.user.username) }}" class="team__name person__link">{{ member.user.full_name }}</a>
+                                <p class="person__meta">{{ member.vacancy.role_name }}</p>
+                            </div>
+                        </li>
+                        {% endfor %}
                     </ul>
-                    {% if project.total_slots and project.status == "open" %}<p class="team__more">Faltan {{ project.total_slots }} lugar{{ '' if project.total_slots == 1 else 'es' }} por llenar.</p>{% endif %}
+                    {% if project.free_slots and project.status == "open" %}<p class="team__more">Faltan {{ project.free_slots }} lugar{{ '' if project.free_slots == 1 else 'es' }} por llenar.</p>{% endif %}
                 </section>
+
+                {% if not is_owner and project.can_be_reported %}
+                <a href="{{ url_for('reports.new', project_id=project.id) }}" class="report-link">Reportar este proyecto</a>
+                {% endif %}
             </aside>
         </div>
     </main>

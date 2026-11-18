@@ -1,0 +1,89 @@
+{# Mis postulaciones: dónde me postulé y en qué estado está cada una.
+   Espera: pending, accepted y closed (rechazadas o retiradas), csrf_form.
+   Envía (POST, sin campos): applications.withdraw #}
+{% from "_fields.html" import csrf_input %}
+
+{% macro application_list(items) %}
+<ul class="app-list">
+    {% for a in items %}
+    <li class="app-card">
+        <div class="app-card__head">
+            <div class="app-card__info">
+                <a href="{{ url_for('projects.detail', project_id=a.project.id) }}" class="app-card__title project-card__link">{{ a.project.title }}</a>
+                <p class="app-card__meta">{{ a.vacancy.role_name }} · {{ a.vacancy.major_label }}</p>
+            </div>
+            <span class="badge app-status app-status--{{ a.status }}">{{ a.status_label }}</span>
+        </div>
+        <p class="app-card__message">{{ a.message }}</p>
+        <div class="app-card__foot">
+            <p class="app-card__date">
+                Enviada el {{ a.created_at.strftime('%d/%m/%Y') }}{% if a.decided_at %} · {{ a.status_label|lower }} el {{ a.decided_at.strftime('%d/%m/%Y') }}{% endif %}
+                {% if a.is_accepted %} · Proyecto {{ a.project.status_label|lower }}{% endif %}
+            </p>
+            {% if a.can_withdraw %}
+            <form method="POST" action="{{ url_for('applications.withdraw', application_id=a.id) }}">
+                {{ csrf_input(csrf_form) }}
+                <button type="submit" class="btn btn--outline-danger btn--sm">{{ 'Salir del equipo' if a.is_accepted else 'Retirar' }}</button>
+            </form>
+            {% endif %}
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% endmacro %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis postulaciones · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/projects.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main>
+        <section class="explore">
+            <div class="explore__head">
+                <div>
+                    <h1 class="explore__title">Mis <span class="highlight">postulaciones</span></h1>
+                    <p class="explore__text">Los roles a los que te postulaste y en qué estado está cada uno.</p>
+                </div>
+                <a href="{{ url_for('main.explore') }}" class="btn btn--secondary">Buscar proyectos</a>
+            </div>
+
+            {% include "_flash.html" %}
+
+            {% if not (pending or accepted or closed) %}
+            <div class="empty">
+                <p class="empty__title">Todavía no te postulaste a ningún rol</p>
+                <p class="empty__text">Busca un proyecto que te guste en Explorar y postúlate a uno de sus roles.</p>
+                <a href="{{ url_for('main.explore') }}" class="btn btn--secondary">Ir a Explorar</a>
+            </div>
+            {% endif %}
+
+            {% if accepted %}
+            <h2 class="section-title">En el equipo <span class="section-title__count">({{ accepted|length }})</span></h2>
+            {{ application_list(accepted) }}
+            {% endif %}
+
+            {% if pending %}
+            <h2 class="section-title">Esperando respuesta <span class="section-title__count">({{ pending|length }})</span></h2>
+            {{ application_list(pending) }}
+            {% endif %}
+
+            {% if closed %}
+            <h2 class="section-title">Cerradas <span class="section-title__count">({{ closed|length }})</span></h2>
+            {{ application_list(closed) }}
+            {% endif %}
+        </section>
+    </main>
+
+</body>
+</html>

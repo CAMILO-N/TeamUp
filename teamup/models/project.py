@@ -44,6 +44,9 @@ class Project(db.Model):
     # Pedidos de revisión del admin (filtro de palabras o reportes)
     reviews = db.relationship("ValidationRequest", back_populates="project", cascade="all, delete-orphan",
                               passive_deletes=True, order_by="ValidationRequest.created_at.desc()")
+    # Reportes de los usuarios (los maneja Report)
+    reports = db.relationship("Report", back_populates="project", cascade="all, delete-orphan",
+                              order_by="Report.created_at")
 
     @property
     def is_draft(self):
@@ -133,6 +136,47 @@ class Project(db.Model):
     @property
     def total_slots(self):
         return sum(vacancy.slots for vacancy in self.vacancies)
+
+    @property
+    def free_slots(self):
+        """Lugares que todavía faltan llenar en todos los roles."""
+        return sum(vacancy.free_slots for vacancy in self.vacancies)
+
+    @property
+    def members(self):
+        """Postulaciones aceptadas de todos los roles: el equipo, sin contar al creador."""
+        return [application for vacancy in self.vacancies for application in vacancy.members]
+
+    @property
+    def pending_applications(self):
+        return [application for vacancy in self.vacancies for application in vacancy.pending]
+
+    @property
+    def can_be_reported(self):
+        """Solo se reportan los que se ven en Explorar o están en curso; los terminados ya pasaron por el admin."""
+        return self.status in (PROJECT_OPEN, PROJECT_IN_PROGRESS) and not self.is_hidden
+
+    def report(self, user, reason, detail):
+        """Guarda el reporte y manda el proyecto a la cola del admin con todos los motivos."""
+        from teamup.choices import REVIEW_REPORT
+        from teamup.models.report import Report
+
+        report = Report(reason=reason, detail=detail or None)
+        self.reports.append(report)
+        report.user = user
+        # El pedido del admin lista los reportes que todavía no revisó, del más antiguo al más nuevo
+        pending = [r for r in self.reports if r.created_at is None or r.created_at >= self._last_report_review()]
+        count = len(pending)
+        self.send_to_review(REVIEW_REPORT, f"{count} reporte{'' if count == 1 else 's'}. "
+                                           + "; ".join(r.summary() for r in pending))
+        return report
+
+    def _last_report_review(self):
+        """Cuándo el admin revisó el último reporte de este proyecto (o el inicio de los tiempos)."""
+        from teamup.choices import REVIEW_REPORT
+
+        decided = [r.reviewed_at for r in self.reviews if r.source == REVIEW_REPORT and r.reviewed_at]
+        return max(decided) if decided else datetime.min
 
     @property
     def initials(self):

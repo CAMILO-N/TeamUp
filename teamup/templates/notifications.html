@@ -1,0 +1,67 @@
+{# Notificaciones: los avisos del usuario, del más nuevo al más antiguo.
+   Espera: notifications y csrf_form.
+   Envía (POST, sin campos): notifications.open_one (lo marca como leído y lleva a su enlace) y notifications.read_all #}
+{% from "_fields.html" import csrf_input %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificaciones · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/projects.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main class="profile">
+        <div class="explore__head">
+            <div>
+                <h1 class="profile__title"><span class="highlight">Notificaciones</span></h1>
+                <p class="profile__subtitle">
+                    {% if unread_notifications %}Tienes {{ unread_notifications }} aviso{{ '' if unread_notifications == 1 else 's' }} sin leer.
+                    {% else %}Estás al día.{% endif %}
+                </p>
+            </div>
+            {% if unread_notifications %}
+            <form method="POST" action="{{ url_for('notifications.read_all') }}">
+                {{ csrf_input(csrf_form) }}
+                <button type="submit" class="btn btn--secondary btn--sm">Marcar todas como leídas</button>
+            </form>
+            {% endif %}
+        </div>
+
+        {% include "_flash.html" %}
+
+        {% if notifications %}
+        <ul class="notification-list">
+            {% for n in notifications %}
+            <li>
+                <form method="POST" action="{{ url_for('notifications.open_one', notification_id=n.id) }}">
+                    {{ csrf_input(csrf_form) }}
+                    <button type="submit" class="notification{{ ' notification--unread' if not n.is_read }}">
+                        <span class="notification__dot" aria-hidden="true"></span>
+                        <span class="notification__body">
+                            <span class="notification__text">{{ n.text }}</span>
+                            <span class="notification__date">{{ n.created_at.strftime('%d/%m/%Y %H:%M') }}{% if not n.is_read %} · Nuevo{% endif %}</span>
+                        </span>
+                    </button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty">
+            <p class="empty__title">No tienes notificaciones</p>
+            <p class="empty__text">Aquí te avisaremos cuando alguien se postule a tus proyectos o te respondan una postulación.</p>
+        </div>
+        {% endif %}
+    </main>
+
+</body>
+</html>

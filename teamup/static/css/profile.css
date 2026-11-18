@@ -13,6 +13,8 @@
 }
 
 .profile__subtitle { color: var(--gray); margin-bottom: 28px; }
+.profile__public-link { display: inline-block; color: var(--coral); font-weight: 600; margin-left: 6px; }
+.profile__public-link:hover { text-decoration: underline; }
 
 .profile__back { color: var(--gray); font-size: 0.9rem; }
 .profile__back:hover { color: var(--bone); }

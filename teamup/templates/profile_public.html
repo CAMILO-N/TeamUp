@@ -1,0 +1,90 @@
+{# Perfil público: sobre mí, habilidades, disponibilidad, enlaces y proyectos.
+   Espera: person (User). El número de contacto no se muestra aquí: solo en sus proyectos y en sus postulaciones. #}
+{% from "_projects.html" import card %}
+{% set own = person.id == current_user.id %}
+{% set created = person.public_projects %}
+{% set joined = person.joined_projects %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ person.full_name }} · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/projects.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main class="profile profile--wide">
+        <a href="{{ url_for('main.explore') }}" class="profile__back">&larr; Volver a Explorar</a>
+
+        <section class="public-hero">
+            <span class="person__avatar public-hero__avatar" aria-hidden="true">{{ person.initials }}</span>
+            <div class="public-hero__body">
+                <h1 class="public-hero__name">{{ person.full_name }}</h1>
+                <p class="person__meta">@{{ person.username }} · {{ person.major.name }} · {{ person.semester }}.º semestre</p>
+                {% if not person.is_active %}<span class="badge badge--off">Cuenta desactivada</span>{% endif %}
+            </div>
+            {% if own %}<a href="{{ url_for('profile.edit') }}" class="btn btn--secondary btn--sm">Editar en Configuración</a>{% endif %}
+        </section>
+
+        <dl class="stats">
+            <div class="stats__item"><dt class="stats__label">Proyectos creados</dt><dd class="stats__value">{{ created|length }}</dd></div>
+            <div class="stats__item"><dt class="stats__label">Participa en</dt><dd class="stats__value">{{ joined|length }}</dd></div>
+            <div class="stats__item"><dt class="stats__label">Realizados</dt><dd class="stats__value">{{ person.finished_count }}</dd></div>
+        </dl>
+
+        <section class="profile-card">
+            <h2 class="profile-card__title">Sobre mí</h2>
+            {% if person.bio %}
+            <p class="detail__text">{{ person.bio }}</p>
+            {% else %}
+            <p class="profile-card__note">{{ 'Todavía no escribiste nada sobre ti.' if own else 'Todavía no escribió nada sobre sí.' }}</p>
+            {% endif %}
+
+            {% if person.skills %}
+            <h3 class="public__subtitle">Habilidades</h3>
+            <ul class="skill-list">
+                {% for skill in person.skills %}<li class="skill">{{ skill.name }}</li>{% endfor %}
+            </ul>
+            {% endif %}
+
+            <dl class="facts facts--two public__facts">
+                <div class="facts__item"><dt class="facts__label">Disponibilidad</dt><dd class="facts__value">{{ person.availability_label if person.availability else 'Sin indicar' }}</dd></div>
+                <div class="facts__item"><dt class="facts__label">Correo</dt><dd class="facts__value"><a href="mailto:{{ person.email }}" class="facts__link">{{ person.email }}</a></dd></div>
+                {% if person.portfolio_url %}<div class="facts__item"><dt class="facts__label">Portafolio</dt><dd class="facts__value"><a href="{{ person.portfolio_url }}" class="facts__link" target="_blank" rel="noopener noreferrer nofollow">{{ person.portfolio_url|replace('https://', '')|replace('http://', '')|truncate(40) }}</a></dd></div>{% endif %}
+                {% if person.linkedin_url %}<div class="facts__item"><dt class="facts__label">LinkedIn</dt><dd class="facts__value"><a href="{{ person.linkedin_url }}" class="facts__link" target="_blank" rel="noopener noreferrer nofollow">Ver perfil</a></dd></div>{% endif %}
+            </dl>
+        </section>
+
+        {% if created %}
+        <h2 class="section-title">Proyectos que creó</h2>
+        <div class="projects">
+            {% for p in created %}
+            {% call card(p, false) %}
+            <div class="project-card__footer"><span class="badge badge--ok">{{ p.status_label }}</span></div>
+            {% endcall %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if joined %}
+        <h2 class="section-title">Proyectos en los que participa</h2>
+        <div class="projects">
+            {% for p in joined %}
+            {% call card(p) %}
+            <div class="project-card__footer"><span class="badge badge--ok">{{ p.status_label }}</span></div>
+            {% endcall %}
+            {% endfor %}
+        </div>
+        {% endif %}
+    </main>
+
+</body>
+</html>

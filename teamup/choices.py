@@ -66,3 +66,25 @@ REVIEW_STATUSES = [
 def label(choices, value):
     """Texto en español de un valor de la lista; si no está, el mismo valor."""
     return dict(choices).get(value, value)
+
+
+# Postulaciones a una vacante
+APPLICATION_PENDING = "pending"
+APPLICATION_ACCEPTED = "accepted"
+APPLICATION_REJECTED = "rejected"
+APPLICATION_WITHDRAWN = "withdrawn"
+
+APPLICATION_STATUSES = [
+    (APPLICATION_PENDING, "Pendiente"),
+    (APPLICATION_ACCEPTED, "Aceptada"),
+    (APPLICATION_REJECTED, "Rechazada"),
+    (APPLICATION_WITHDRAWN, "Retirada"),
+]
+
+# Motivos para reportar un proyecto
+REPORT_REASONS = [
+    ("offensive", "Contenido ofensivo o inapropiado"),
+    ("fraud", "Engaño o estafa"),
+    ("spam", "Spam o publicidad"),
+    ("other", "Otro motivo"),
+]

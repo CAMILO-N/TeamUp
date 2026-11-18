@@ -45,7 +45,10 @@ def create_app():
     login_manager.login_message = "Inicia sesión para continuar."
 
     # Se importan los modelos para que Flask-Migrate conozca sus tablas
-    from teamup.models import banned_word, category, faculty, major, project, role, user, vacancy, validation_request
+    from teamup.models import (
+        application, banned_word, category, faculty, major, notification, project, report, role, skill, user,
+        vacancy, validation_request,
+    )
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -54,16 +57,31 @@ def create_app():
         return found if found and found.is_active else None
 
     from teamup.controllers.admin import admin
+    from teamup.controllers.applications import applications
     from teamup.controllers.auth import auth
     from teamup.controllers.main import main
+    from teamup.controllers.notifications import notifications
     from teamup.controllers.profile import profile
     from teamup.controllers.projects import projects
+    from teamup.controllers.reports import reports
 
     app.register_blueprint(admin)
+    app.register_blueprint(applications)
     app.register_blueprint(auth)
     app.register_blueprint(main)
+    app.register_blueprint(notifications)
     app.register_blueprint(profile)
     app.register_blueprint(projects)
+    app.register_blueprint(reports)
+
+    @app.context_processor
+    def unread_notifications():
+        """Cuántos avisos sin leer tiene el usuario: lo muestra la campana en todas las páginas."""
+        from flask_login import current_user
+
+        if current_user.is_authenticated:
+            return {"unread_notifications": notification.Notification.unread_count(current_user)}
+        return {"unread_notifications": 0}
 
     @app.errorhandler(403)
     def forbidden(error):

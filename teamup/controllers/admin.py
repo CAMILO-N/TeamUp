@@ -6,6 +6,7 @@ from teamup.controllers.projects import apply_project_action
 from teamup.extensions import db
 from teamup.forms import ActionForm, BannedWordForm
 from teamup.models.banned_word import BannedWord
+from teamup.models.notification import Notification
 from teamup.models.project import Project
 from teamup.models.role import ADMIN, Role
 from teamup.models.user import User
@@ -95,6 +96,22 @@ def reviews():
                            csrf_form=ActionForm())
 
 
+def notify_review(review, approved):
+    """Avisa al dueño en qué quedó la revisión de su proyecto."""
+    project = review.project
+    if review.is_showcase:
+        text = f"«{project.title}» ya aparece en la Vitrina." if approved \
+            else f"«{project.title}» no fue aprobado para la Vitrina."
+        link = url_for("projects.detail", project_id=project.id)
+    elif approved:
+        text = f"Un administrador aprobó «{project.title}»: vuelve a estar {project.status_label.lower()}."
+        link = url_for("projects.detail", project_id=project.id)
+    else:
+        text = f"Un administrador no aprobó «{project.title}» y volvió a borrador. Mira el motivo en la vista previa."
+        link = url_for("projects.preview", project_id=project.id)
+    Notification.send(project.owner, text, link)
+
+
 @admin.route("/reviews/<int:review_id>/<any(approve, reject):decision>", methods=["POST"])
 @role_required(ADMIN)
 def decide_review(review_id, decision):
@@ -106,6 +123,7 @@ def decide_review(review_id, decision):
         flash("Ese pedido ya fue revisado.", "error")
     elif decision == "approve":
         review.approve(current_user)
+        notify_review(review, approved=True)
         db.session.commit()
         if review.is_showcase:
             flash(f"«{review.project.title}» ya aparece en la Vitrina.", "success")
@@ -113,6 +131,7 @@ def decide_review(review_id, decision):
             flash(f"«{review.project.title}» fue aprobado y vuelve a estar {review.project.status_label.lower()}.", "success")
     else:
         review.reject(current_user)
+        notify_review(review, approved=False)
         db.session.commit()
         if review.is_showcase:
             flash(f"«{review.project.title}» no entra a la Vitrina.", "success")

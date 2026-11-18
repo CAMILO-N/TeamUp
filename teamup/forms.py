@@ -5,10 +5,10 @@ from wtforms import (
     BooleanField, DateField, EmailField, IntegerField, PasswordField, SelectField, StringField, TextAreaField,
 )
 from wtforms.validators import (
-    DataRequired, Email, EqualTo, InputRequired, Length, NumberRange, Optional, Regexp, ValidationError,
+    URL, DataRequired, Email, EqualTo, InputRequired, Length, NumberRange, Optional, Regexp, ValidationError,
 )
 
-from teamup.choices import MODALITIES, WEEKLY_HOURS
+from teamup.choices import MODALITIES, REPORT_REASONS, WEEKLY_HOURS
 from teamup.extensions import db
 from teamup.models.banned_word import BannedWord, normalize
 from teamup.models.category import Category
@@ -149,6 +149,30 @@ class ProfileForm(UserDataForm):
         Optional(),
         Length(max=25, message="Máximo 25 caracteres."),
     ])
+    # Sobre ti: lo que ven los demás en tu perfil público
+    bio = TextAreaField("Sobre mí", filters=[strip_spaces], validators=[
+        Optional(),
+        Length(max=1000, message="Máximo 1000 caracteres."),
+    ])
+    skills = StringField("Habilidades", filters=[strip_spaces], validators=[Optional()])
+    availability = SelectField("Disponibilidad", choices=WEEKLY_HOURS, validate_choice=False, validators=[Optional()])
+
+    # Contacto y enlaces
+    phone = StringField("Número de contacto", filters=[remove_separators], validators=[
+        Optional(),
+        Regexp(r"^\+?\d{7,14}$", message="Solo números (de 7 a 14), con + al inicio si es internacional."),
+    ])
+    portfolio_url = StringField("Portafolio", filters=[strip_spaces], validators=[
+        Optional(),
+        Length(max=200, message="Máximo 200 caracteres."),
+        URL(message="Escribe la dirección completa, con https://"),
+    ])
+    linkedin_url = StringField("LinkedIn", filters=[strip_spaces], validators=[
+        Optional(),
+        Length(max=200, message="Máximo 200 caracteres."),
+        URL(message="Escribe la dirección completa, con https://"),
+    ])
+
     current_password = PasswordField("Contraseña actual")
     new_password = PasswordField("Nueva contraseña", validators=[
         Optional(),
@@ -157,6 +181,35 @@ class ProfileForm(UserDataForm):
     confirm_new_password = PasswordField("Confirmar nueva contraseña", validators=[
         EqualTo("new_password", message="Las contraseñas no coinciden."),
     ])
+
+    MAX_SKILLS = 10
+
+    def skill_names(self):
+        """Las habilidades escritas, separadas por comas, sin vacías ni repetidas."""
+        names = []
+        for name in (self.skills.data or "").split(","):
+            name = " ".join(name.split())
+            if name and name.lower() not in (n.lower() for n in names):
+                names.append(name)
+        return names
+
+    def validate_skills(self, field):
+        names = self.skill_names()
+        if len(names) > self.MAX_SKILLS:
+            raise ValidationError(f"Máximo {self.MAX_SKILLS} habilidades.")
+        for name in names:
+            if not 2 <= len(name) <= 30:
+                raise ValidationError(f"«{name}»: cada habilidad debe tener de 2 a 30 caracteres.")
+            if not all(char.isalnum() or char in " +#.-" for char in name):
+                raise ValidationError(f"«{name}»: usa solo letras, números, espacios y + # . -")
+
+    def validate_availability(self, field):
+        if field.data and field.data not in dict(WEEKLY_HOURS):
+            raise ValidationError("Elige una opción de la lista.")
+
+    def validate_linkedin_url(self, field):
+        if field.data and "linkedin.com/" not in field.data.lower():
+            raise ValidationError("Escribe la dirección de tu perfil de LinkedIn.")
 
     def validate_current_password(self, field):
         # Solo se pide si escribió una contraseña nueva
@@ -288,6 +341,39 @@ class BannedWordForm(FlaskForm):
         # Sin tildes para que "más" y "mas" no queden repetidas
         if any(normalize(banned.word) == normalize(field.data) for banned in BannedWord.query.all()):
             raise ValidationError("Esa palabra ya está en el filtro.")
+
+
+class ApplicationForm(FlaskForm):
+    """Postularse a un rol: un mensaje para el creador del proyecto."""
+
+    message = TextAreaField("Mensaje para el creador", filters=[strip_spaces], validators=[
+        DataRequired("Cuéntale al creador por qué quieres sumarte."),
+        Length(min=20, max=1000, message="De 20 a 1000 caracteres."),
+    ])
+
+
+class ReportForm(FlaskForm):
+    """Reportar un proyecto: el motivo y, si quiere, más detalle."""
+
+    reason = SelectField("Motivo", choices=REPORT_REASONS, validate_choice=False, validators=[
+        DataRequired("Elige un motivo."),
+    ])
+    detail = TextAreaField("Cuéntanos más", filters=[strip_spaces], validators=[
+        Optional(),
+        Length(max=500, message="Máximo 500 caracteres."),
+    ])
+
+    def validate_reason(self, field):
+        if field.data not in dict(REPORT_REASONS):
+            raise ValidationError("Elige un motivo de la lista.")
+
+    def validate(self, extra_validators=None):
+        # "Otro motivo" necesita explicación (Optional() del detalle no deja hacerlo en validate_detail)
+        valid = super().validate(extra_validators)
+        if self.reason.data == "other" and not self.detail.data:
+            self.detail.errors.append("Cuéntanos cuál es el problema.")
+            return False
+        return valid
 
 
 class ActionForm(FlaskForm):

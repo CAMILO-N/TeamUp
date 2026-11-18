@@ -1,0 +1,46 @@
+{# Reportar un proyecto. El reporte lo saca de Explorar y lo manda a la cola de revisión del admin.
+   Espera: form (ReportForm) y project. Envía (POST): reports.new con reason y detail. #}
+{% from "_fields.html" import csrf, select_field, textarea_field %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportar · {{ project.title }} · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/projects.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main class="profile">
+        <a href="{{ url_for('projects.detail', project_id=project.id) }}" class="profile__back">&larr; Volver al proyecto</a>
+        <h1 class="profile__title">Reportar <span class="highlight">proyecto</span></h1>
+        <p class="profile__subtitle">¿Algo no está bien en «{{ project.title }}»? Avísanos y un administrador lo revisará.</p>
+
+        {% include "_flash.html" %}
+
+        <form method="POST" action="{{ url_for('reports.new', project_id=project.id) }}" novalidate>
+            {{ csrf(form) }}
+
+            <section class="profile-card">
+                <h2 class="profile-card__title">¿Qué pasa con este proyecto?</h2>
+                <p class="profile-card__note">Mientras un administrador lo revisa, el proyecto deja de aparecer en Explorar. El creador no sabrá quién lo reportó.</p>
+                {{ select_field(form.reason) }}
+                {{ textarea_field(form.detail, "Opcional, salvo si eliges «Otro motivo»", 4, hint="Máximo 500 caracteres.") }}
+            </section>
+
+            <div class="profile__actions form-actions">
+                <a href="{{ url_for('projects.detail', project_id=project.id) }}" class="btn btn--secondary">Cancelar</a>
+                <button type="submit" class="btn btn--danger">Enviar reporte</button>
+            </div>
+        </form>
+    </main>
+
+</body>
+</html>

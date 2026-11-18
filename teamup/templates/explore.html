@@ -1,7 +1,13 @@
 {# Explorar: proyectos publicados del campus, con filtros (van en la dirección, por GET).
-   Espera: form (ExploreFilterForm), projects, filtering (si hay algún filtro activo). #}
+   Espera: form (ExploreFilterForm), projects (todos los abiertos), matching (ids que coinciden con los filtros),
+   other_filters (los filtros que no son la categoría), filtering (si hay algún filtro activo),
+   categories (para los atajos), stats (projects, slots, for_you) y for_you (hasta 3 proyectos para tu carrera).
+   static/js/explore-filters.js filtra al instante en el navegador con los data-* de cada tarjeta;
+   sin JavaScript, los atajos son enlaces y el formulario se envía por GET como siempre. #}
 {% from "_fields.html" import optional_select, dependent_select %}
 {% from "_projects.html" import card %}
+{% set active_filters = [form.category.data, form.faculty.data, form.modality.data, form.weekly_hours.data]|select|list|length %}
+{% set match_count = projects|selectattr("id", "in", matching)|list|length %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -21,53 +27,117 @@
 
     <main>
         <section class="explore">
-            <div class="explore__head">
-                <div>
-                    <h1 class="explore__title">Hola, <span class="highlight">{{ current_user.first_name }}</span>.</h1>
-                    <p class="explore__text">Aquí vas a encontrar los proyectos de tu campus.</p>
+            <header class="explore-hero">
+                <div class="explore-hero__body">
+                    <p class="wizard-eyebrow">Explorar</p>
+                    <h1 class="explore-hero__title">Hola, <span class="highlight">{{ current_user.first_name }}</span>.</h1>
+                    <p class="explore-hero__text">Encuentra un proyecto que te emocione, súmate a su equipo o publica tu propia idea para tu campus.</p>
+                    <div class="explore-hero__actions">
+                        <a href="{{ url_for('projects.new') }}" class="btn btn--primary"><span class="btn__arrow">+</span> Nuevo proyecto</a>
+                        <a href="{{ url_for('main.showcase') }}" class="btn btn--secondary">Ver la Vitrina</a>
+                    </div>
                 </div>
-                <a href="{{ url_for('projects.new') }}" class="btn btn--primary"><span class="btn__arrow">+</span> Nuevo proyecto</a>
-            </div>
+                <dl class="explore-stats">
+                    <div class="explore-stats__item">
+                        <dt class="explore-stats__label">Buscan equipo</dt>
+                        <dd class="explore-stats__value">{{ stats.projects }}</dd>
+                        <dd class="explore-stats__hint">proyecto{{ '' if stats.projects == 1 else 's' }} abierto{{ '' if stats.projects == 1 else 's' }}</dd>
+                    </div>
+                    <div class="explore-stats__item">
+                        <dt class="explore-stats__label">Lugares libres</dt>
+                        <dd class="explore-stats__value">{{ stats.slots }}</dd>
+                        <dd class="explore-stats__hint">en todos los roles</dd>
+                    </div>
+                    <div class="explore-stats__item explore-stats__item--accent">
+                        <dt class="explore-stats__label">Para tu carrera</dt>
+                        <dd class="explore-stats__value">{{ stats.for_you }}</dd>
+                        <dd class="explore-stats__hint" title="{{ current_user.major.name }}">{{ current_user.major.name }}</dd>
+                    </div>
+                </dl>
+            </header>
 
             {% include "_flash.html" %}
 
-            <form method="GET" action="{{ url_for('main.explore') }}" class="filters">
-                <div class="filters__fields">
-                    {{ optional_select(form.category, "Todas") }}
-                    {{ optional_select(form.faculty, "Todas") }}
-                    {{ dependent_select(form.major, form.faculty, waiting="Todas") }}
-                    {{ optional_select(form.modality, "Todas") }}
-                    {{ optional_select(form.weekly_hours, "Cualquiera") }}
-                </div>
-                <div class="filters__actions">
-                    <button type="submit" class="btn btn--primary btn--sm">Filtrar</button>
-                    {% if filtering %}<a href="{{ url_for('main.explore') }}" class="btn btn--secondary btn--sm">Quitar filtros</a>{% endif %}
-                </div>
-            </form>
-
-            <h2 class="section-title">Proyectos del campus{% if filtering %} <span class="section-title__count">({{ projects|length }})</span>{% endif %}</h2>
-            {% if projects %}
-            <div class="projects">
-                {% for p in projects %}
-                {{ card(p) }}
+            {# Atajos por categoría: enlaces que conservan los demás filtros. Con JavaScript filtran sin recargar #}
+            <nav class="category-bar" aria-label="Categorías">
+                <a href="{{ url_for('main.explore', **other_filters) }}" data-category-chip=""
+                   class="category-bar__chip{{ ' category-bar__chip--active' if not form.category.data }}">Todos</a>
+                {% for category in categories %}
+                <a href="{{ url_for('main.explore', category=category.id, **other_filters) }}" data-category-chip="{{ category.id }}"
+                   class="category-bar__chip{{ ' category-bar__chip--active' if form.category.data == category.id }}">{{ category.name }}</a>
                 {% endfor %}
-            </div>
-            {% elif filtering %}
-            <div class="empty">
-                <p class="empty__title">No hay proyectos con esos filtros</p>
-                <p class="empty__text">Prueba con menos filtros o quítalos para ver todo.</p>
-                <a href="{{ url_for('main.explore') }}" class="btn btn--secondary">Quitar filtros</a>
-            </div>
-            {% else %}
-            <div class="empty">
-                <p class="empty__title">Todavía no hay proyectos</p>
-                <p class="empty__text">Sé el primero en publicar una idea para tu campus.</p>
-                <a href="{{ url_for('projects.new') }}" class="btn btn--secondary">Crear un proyecto</a>
+            </nav>
+
+            <details class="filters"{% if filtering %} open{% endif %}>
+                <summary class="filters__toggle">
+                    <span>Filtros avanzados <span class="count-pill" data-filter-count{{ ' hidden' if not active_filters }}>{{ active_filters }}</span></span>
+                    <span class="filters__hint">Facultad, carrera, modalidad y dedicación</span>
+                </summary>
+                <form method="GET" action="{{ url_for('main.explore') }}" class="filters__form" data-explore-filters>
+                    <div class="filters__fields">
+                        {{ optional_select(form.category, "Todas") }}
+                        {{ optional_select(form.faculty, "Todas") }}
+                        {{ dependent_select(form.major, form.faculty, waiting="Todas") }}
+                        {{ optional_select(form.modality, "Todas") }}
+                        {{ optional_select(form.weekly_hours, "Cualquiera") }}
+                    </div>
+                    <div class="filters__actions">
+                        {# Con JavaScript los filtros se aplican al elegir, así que este botón se esconde #}
+                        <button type="submit" class="btn btn--primary btn--sm" data-filter-submit>Aplicar filtros</button>
+                        <a href="{{ url_for('main.explore') }}" class="btn btn--secondary btn--sm" data-filter-clear{{ ' hidden' if not filtering }}>Quitar filtros</a>
+                    </div>
+                </form>
+            </details>
+
+            {% if for_you %}
+            <div class="explore-section" data-for-you{{ ' hidden' if filtering }}>
+                <div class="explore-section__head">
+                    <div>
+                        <p class="wizard-eyebrow">Para ti</p>
+                        <h2 class="explore-section__title">Buscan a alguien como tú</h2>
+                    </div>
+                    {% if stats.for_you > for_you|length %}
+                    <a href="{{ url_for('main.explore', faculty=current_user.major.faculty_id, major=current_user.major_id) }}" class="section-head__edit">Ver los {{ stats.for_you }} &rarr;</a>
+                    {% endif %}
+                </div>
+                <div class="projects">
+                    {% for p in for_you %}
+                    {{ card(p, featured=true) }}
+                    {% endfor %}
+                </div>
             </div>
             {% endif %}
+
+            <div class="explore-section">
+                <div class="explore-section__head">
+                    <div>
+                        <p class="wizard-eyebrow" data-results-eyebrow>{{ 'Resultados' if filtering else 'Todo el campus' }}</p>
+                        <h2 class="explore-section__title"><span data-results-title>{{ 'Proyectos que coinciden' if filtering else 'Proyectos abiertos' }}</span> <span class="section-title__count">(<span data-results-count>{{ match_count }}</span>)</span></h2>
+                    </div>
+                </div>
+                {% if projects %}
+                <div class="projects" data-explore-results>
+                    {% for p in projects %}
+                    {{ card(p, data=card_data[p.id], hidden=p.id not in matching) }}
+                    {% endfor %}
+                </div>
+                <div class="empty" data-results-empty{{ ' hidden' if match_count }}>
+                    <p class="empty__title">No hay proyectos con esos filtros</p>
+                    <p class="empty__text">Prueba con menos filtros o quítalos para ver todo.</p>
+                    <a href="{{ url_for('main.explore') }}" class="btn btn--secondary" data-filter-clear>Quitar filtros</a>
+                </div>
+                {% else %}
+                <div class="empty">
+                    <p class="empty__title">Todavía no hay proyectos</p>
+                    <p class="empty__text">Sé el primero en publicar una idea para tu campus.</p>
+                    <a href="{{ url_for('projects.new') }}" class="btn btn--secondary">Crear un proyecto</a>
+                </div>
+                {% endif %}
+            </div>
         </section>
     </main>
 
     <script src="{{ url_for('static', filename='js/faculty-major.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/explore-filters.js') }}"></script>
 </body>
 </html>
