@@ -202,7 +202,9 @@ def detail(project_id):
     # Un borrador o un proyecto oculto solo lo ven su dueño y el admin
     if not (project.is_public or is_owner or current_user.is_admin):
         abort(404)
-    return render_template("project_detail.html", project=project, is_owner=is_owner)
+    # El dueño ve además el panel de gestión (estado, editar, ocultar, borrar)
+    return render_template("project_detail.html", project=project, is_owner=is_owner,
+                           csrf_form=ActionForm() if is_owner else None)
 
 
 # Mis proyectos
@@ -216,26 +218,35 @@ def mine():
         drafts=[p for p in own if p.status == PROJECT_DRAFT],
         active=[p for p in own if p.status not in (PROJECT_DRAFT, PROJECT_FINISHED, PROJECT_CANCELLED)],
         finished=[p for p in own if p.status == PROJECT_FINISHED],
-        csrf_form=ActionForm(),
     )
 
 
-@projects.route("/projects/<int:project_id>/finish", methods=["POST"])
+# Gestión del estado: arrancar, volver a buscar gente y terminar
+
+@projects.route("/projects/<int:project_id>/<any(start, reopen, finish):change>", methods=["POST"])
 @login_required
-def finish(project_id):
+def change_status(project_id, change):
     project = own_project(project_id)
 
     if not ActionForm().validate_on_submit():
         flash("El formulario expiró. Vuelve a intentarlo.", "error")
+        return redirect(url_for("projects.detail", project_id=project.id))
+
+    error = {"start": project.start, "reopen": project.reopen,
+             "finish": lambda: project.finish(date.today())}[change]()
+    if error:
+        flash(error, "error")
     else:
-        error = project.finish(date.today())
-        if error:
-            flash(error, "error")
+        db.session.commit()
+        if change == "start":
+            flash(f"«{project.title}» arrancó. Ya no aparece en Explorar.", "success")
+        elif change == "reopen":
+            flash(f"«{project.title}» vuelve a buscar gente en Explorar.", "success")
+        elif project.duration_days is not None:
+            flash(f"«{project.title}» quedó como terminado. Duró {project.duration_days} días.", "success")
         else:
-            db.session.commit()
-            flash(f"«{project.title}» quedó como terminado. Duró {project.duration_days} días."
-                  if project.duration_days is not None else f"«{project.title}» quedó como terminado.", "success")
-    return redirect(url_for("projects.mine"))
+            flash(f"«{project.title}» quedó como terminado.", "success")
+    return redirect(url_for("projects.detail", project_id=project.id))
 
 
 @projects.route("/projects/<int:project_id>/<any(hide, show, delete):action>", methods=["POST"])
@@ -244,4 +255,7 @@ def project_action(project_id, action):
     # El dueño solo maneja sus proyectos; el administrador usa su propio panel
     project = own_project(project_id)
     apply_project_action(project, action)
-    return redirect(url_for("projects.mine"))
+    # Ocultar o mostrar vuelve a la gestión del proyecto; si se borró, a Mis proyectos
+    if action == "delete":
+        return redirect(url_for("projects.mine"))
+    return redirect(url_for("projects.detail", project_id=project.id))
