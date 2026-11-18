@@ -1,7 +1,8 @@
 from datetime import datetime
 
 from teamup.choices import (
-    PROJECT_DRAFT, REVIEW_APPROVED, REVIEW_PENDING, REVIEW_REJECTED, REVIEW_SOURCES, REVIEW_STATUSES, label,
+    PROJECT_DRAFT, REVIEW_APPROVED, REVIEW_PENDING, REVIEW_REJECTED, REVIEW_SHOWCASE, REVIEW_SOURCES,
+    REVIEW_STATUSES, label,
 )
 from teamup.extensions import db
 
@@ -42,15 +43,23 @@ class ValidationRequest(db.Model):
         self.reviewed_by = admin
         self.reviewed_at = datetime.now()
 
+    @property
+    def is_showcase(self):
+        return self.source == REVIEW_SHOWCASE
+
     def approve(self, admin):
-        """El proyecto vuelve a su estado (publicado, en curso...)."""
+        """Vitrina: el terminado entra a la Vitrina. Lo demás: el proyecto vuelve a su estado (publicado, en curso...)."""
         self._close(REVIEW_APPROVED, admin)
-        self.project.status = self.return_status
+        if self.is_showcase:
+            self.project.in_showcase = True
+        else:
+            self.project.status = self.return_status
 
     def reject(self, admin):
-        """El proyecto vuelve a borrador: el dueño lo corrige y lo publica otra vez."""
+        """Vitrina: sigue terminado, pero no entra. Lo demás: vuelve a borrador para que el dueño lo corrija."""
         self._close(REVIEW_REJECTED, admin)
-        self.project.status = PROJECT_DRAFT
+        if not self.is_showcase:
+            self.project.status = PROJECT_DRAFT
 
     @classmethod
     def pending(cls):
