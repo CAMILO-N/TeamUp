@@ -4,7 +4,7 @@ from sqlalchemy import or_
 
 from teamup.choices import (
     MODALITIES, PROJECT_DRAFT, PROJECT_FINISHED, PROJECT_IN_PROGRESS, PROJECT_OPEN, PROJECT_PENDING_REVIEW,
-    PROJECT_STATUSES, REVIEW_BANNED_WORDS, REVIEW_PENDING, WEEKLY_HOURS, label,
+    PROJECT_STATUSES, REVIEW_BANNED_WORDS, REVIEW_PENDING, REVIEW_REJECTED, REVIEW_SHOWCASE, WEEKLY_HOURS, label,
 )
 from teamup.extensions import db
 
@@ -32,6 +32,8 @@ class Project(db.Model):
     status = db.Column(db.String(20), nullable=False, default=PROJECT_DRAFT)
     # Un proyecto oculto no aparece en Explorar, pero no se borra
     is_hidden = db.Column(db.Boolean, nullable=False, default=False)
+    # Un terminado entra a la Vitrina solo cuando el admin lo aprueba
+    in_showcase = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
 
     owner = db.relationship("User", back_populates="projects")
@@ -78,6 +80,20 @@ class Project(db.Model):
     @property
     def is_in_review(self):
         return self.status == PROJECT_PENDING_REVIEW
+
+    @property
+    def is_finished(self):
+        return self.status == PROJECT_FINISHED
+
+    @property
+    def showcase_status(self):
+        """Dónde está un terminado respecto a la Vitrina: approved, pending, rejected o None."""
+        if self.in_showcase:
+            return "approved"
+        request = next((r for r in self.reviews if r.source == REVIEW_SHOWCASE), None)
+        if request is None:
+            return None
+        return "rejected" if request.status == REVIEW_REJECTED else "pending" if request.is_pending else None
 
     @property
     def last_review(self):
@@ -146,7 +162,15 @@ class Project(db.Model):
             return "No se puede terminar antes de la fecha de inicio."
         self.status = PROJECT_FINISHED
         self.finished_at = day
+        self.request_showcase()
         return None
+
+    def request_showcase(self):
+        """Pide al admin que el proyecto terminado entre a la Vitrina. No cambia su estado."""
+        from teamup.models.validation_request import ValidationRequest
+
+        self.reviews.insert(0, ValidationRequest(source=REVIEW_SHOWCASE, return_status=PROJECT_FINISHED,
+                                                 detail="Terminado: pide entrar a la Vitrina"))
 
     @classmethod
     def search(cls, category_id=None, faculty_id=None, major_id=None, modality=None, weekly_hours=None):
@@ -176,8 +200,9 @@ class Project(db.Model):
 
     @classmethod
     def showcase(cls):
-        """Proyectos de la Vitrina: los terminados que no están ocultos, del más reciente al más antiguo."""
-        return cls.query.filter_by(status=PROJECT_FINISHED, is_hidden=False).order_by(cls.finished_at.desc())
+        """Proyectos de la Vitrina: terminados, aprobados por el admin y no ocultos, del más reciente al más antiguo."""
+        return (cls.query.filter_by(status=PROJECT_FINISHED, in_showcase=True, is_hidden=False)
+                .order_by(cls.finished_at.desc()))
 
     @property
     def duration_days(self):

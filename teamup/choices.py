@@ -43,10 +43,13 @@ VACANCY_STATUSES = [
 # Cola de revisión del admin: de dónde viene cada pedido y en qué quedó
 REVIEW_BANNED_WORDS = "banned_words"
 REVIEW_REPORT = "report"
+# Un proyecto terminado pide entrar a la Vitrina
+REVIEW_SHOWCASE = "showcase"
 
 REVIEW_SOURCES = [
     (REVIEW_BANNED_WORDS, "Filtro de palabras"),
     (REVIEW_REPORT, "Reporte"),
+    (REVIEW_SHOWCASE, "Vitrina"),
 ]
 
 REVIEW_PENDING = "pending"

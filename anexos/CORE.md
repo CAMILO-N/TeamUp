@@ -136,6 +136,8 @@ users >──< skills
         - **Volver a buscar gente** (`in_progress` → `open`): si alguien se va; vuelve a Explorar.
         - **Terminar proyecto**, y además Editar, Ocultar y Borrar.
         - Rutas: `POST /projects/<id>/start`, `/reopen`, `/finish` (`change_status`); la lógica está en `Project.start()`, `reopen()` y `finish()`.
+        - **Un proyecto terminado es solo para ver:** su dueño ya no lo edita, no cambia su estado, no lo oculta ni lo borra (lo bloquea `finished_is_read_only()` en `controllers/projects.py`). El admin sí lo puede ocultar o borrar desde su panel.
+    - **Vitrina (`/showcase`):** muestra los terminados que **el admin aprobó**. Al terminar un proyecto se crea un pedido en la cola "Revisión" con el motivo "Vitrina" (`Project.request_showcase()`). Aprobar pone `in_showcase = True`; rechazar lo deja terminado pero fuera de la Vitrina. Los que ya estaban terminados antes de esta migración entraron solos a la cola.
     - La página del proyecto sigue el diseño de Figma: portada con categoría y estado, "La idea", roles, "Creado por" (sin "Enviar mensaje": el contacto es el correo) y "Equipo actual".
     - **Para Sebastián:** en `project_detail.html` hay comentarios donde van el botón "Postularme" (solo si el proyecto está `open` y no es del usuario), el "Sobre mí" y el número del creador, y los integrantes aceptados en "Equipo actual". En `my_projects.html` puede ir cuántas postulaciones nuevas tiene cada proyecto.
 6. **Notificaciones** (la campana).

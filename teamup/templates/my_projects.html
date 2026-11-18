@@ -9,10 +9,11 @@
     <div class="project-card__footer">
         {{ status_badge(p) }}
         {% if p.duration_days is not none %}<p class="project-card__meta">Duró {{ p.duration_days }} día{{ '' if p.duration_days == 1 else 's' }}</p>{% endif %}
+        {% if p.is_finished %}<p class="project-card__meta">{{ {"approved": "En la Vitrina", "pending": "Esperando aprobación para la Vitrina", "rejected": "No aprobado para la Vitrina"}.get(p.showcase_status, "Fuera de la Vitrina") }}</p>{% endif %}
         {% if p.is_draft %}
         <a href="{{ url_for('projects.preview', project_id=p.id) }}" class="btn btn--primary btn--sm">Continuar</a>
         {% else %}
-        <a href="{{ url_for('projects.detail', project_id=p.id) }}" class="btn btn--secondary btn--sm">Gestionar</a>
+        <a href="{{ url_for('projects.detail', project_id=p.id) }}" class="btn btn--secondary btn--sm">{{ 'Ver' if p.is_finished else 'Gestionar' }}</a>
         {% endif %}
         {# Aquí puede ir cuántas postulaciones nuevas tiene cada proyecto (lo hace Sebastián) #}
     </div>
