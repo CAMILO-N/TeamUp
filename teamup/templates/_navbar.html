@@ -1,10 +1,12 @@
 {# Barra lateral de la app (usuario con sesión) y franja de arriba con las iniciales.
    En celular la lateral pasa arriba y la franja se oculta. Marca la sección actual según request.endpoint. #}
 {% set endpoint = request.endpoint or "" %}
+{# La página de un proyecto ajeno cuenta como Explorar; la de uno propio, como Mis proyectos #}
+{% set foreign_detail = endpoint == "projects.detail" and project is defined and project.owner_id != current_user.id %}
 {% set nav_items = [
-    ("main.explore", "Explorar", endpoint == "main.explore"),
+    ("main.explore", "Explorar", endpoint == "main.explore" or foreign_detail),
     ("main.showcase", "Vitrina", endpoint == "main.showcase"),
-    ("projects.mine", "Mis proyectos", endpoint.startswith("projects.") and endpoint != "projects.new"),
+    ("projects.mine", "Mis proyectos", endpoint.startswith("projects.") and endpoint != "projects.new" and not foreign_detail),
     ("profile.edit", "Mi perfil", endpoint.startswith("profile.")),
 ] %}
 {% if current_user.is_admin %}

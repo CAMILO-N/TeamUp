@@ -115,7 +115,138 @@ a.wizard__item:hover { color: var(--bone); border-color: var(--gray); }
 .detail__badges { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
 .detail__summary { font-size: 1.05rem; line-height: 1.5; margin-bottom: 12px; }
 .detail__text { color: var(--gray); line-height: 1.65; white-space: pre-line; overflow-wrap: anywhere; }
-.detail__owner-actions { margin: 4px 0 20px; }
+
+/* Página del proyecto */
+.detail {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 16px 32px 80px;
+}
+
+.detail-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    margin: 16px 0 20px;
+    padding: 40px 44px;
+    background: linear-gradient(110deg, var(--surface) 55%, rgba(228, 87, 46, 0.18));
+    border: 1px solid var(--border);
+    border-radius: 28px;
+}
+
+.detail-hero__body { min-width: 0; }
+
+.detail-hero__title {
+    font-size: 3.2rem;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin: 18px 0 12px;
+    overflow-wrap: anywhere;
+}
+
+.detail-hero__summary { color: var(--gray); font-size: 1.1rem; line-height: 1.5; max-width: 620px; }
+
+.detail-hero__meta { display: flex; flex-wrap: wrap; gap: 8px 22px; list-style: none; margin-top: 16px; }
+.detail-hero__fact { display: inline-flex; align-items: center; gap: 6px; color: var(--gray); font-size: 0.85rem; }
+.detail-hero__icon { flex: none; }
+
+.detail-hero__mark {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 170px;
+    height: 170px;
+    border: 1px solid rgba(228, 87, 46, 0.45);
+    border-radius: 50%;
+    color: var(--coral);
+    background: radial-gradient(circle, rgba(228, 87, 46, 0.12), transparent 70%);
+}
+
+.detail-hero__initials { font-family: "Space Grotesk", sans-serif; font-weight: 700; letter-spacing: 0.35em; margin-right: -0.35em; }
+
+.detail__grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.detail__count { color: var(--gray); font-size: 0.82rem; white-space: nowrap; }
+
+/* Roles en la página del proyecto */
+.role-list { list-style: none; }
+
+.role {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 0;
+    border-top: 1px solid var(--border);
+}
+
+.role__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(242, 179, 61, 0.1);
+    color: var(--ochre);
+}
+
+.role__info { flex: 1; min-width: 0; }
+.role__name { font-weight: 600; overflow-wrap: anywhere; }
+.role__meta { color: var(--gray); font-size: 0.82rem; margin-top: 2px; }
+.role__slots { color: var(--ochre); font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
+
+/* Gestión del proyecto (solo el dueño) */
+.manage { border-color: rgba(228, 87, 46, 0.45); }
+.manage__text { color: var(--gray); font-size: 0.9rem; line-height: 1.55; margin: 14px 0 18px; }
+.manage__buttons { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.manage__btn { width: 100%; text-align: center; }
+.manage__more { padding-top: 16px; border-top: 1px solid var(--border); }
+
+/* Abierto → En curso → Terminado */
+.status-steps { display: flex; gap: 6px; list-style: none; margin-top: 14px; }
+
+.status-steps__item {
+    flex: 1;
+    padding-top: 8px;
+    border-top: 3px solid var(--border);
+    color: var(--gray);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-steps__item--done { border-top-color: rgba(228, 87, 46, 0.5); }
+.status-steps__item--current { border-top-color: var(--coral); color: var(--bone); }
+
+/* Creador y equipo */
+.person { display: flex; align-items: center; gap: 12px; margin: 14px 0; }
+
+.person__avatar {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--coral);
+    color: var(--bone);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.person__avatar--sm { width: 34px; height: 34px; font-size: 0.72rem; }
+.person__name { font-weight: 600; }
+.person__meta { color: var(--gray); font-size: 0.82rem; }
+.person__contact { color: var(--coral); font-size: 0.88rem; overflow-wrap: anywhere; }
+.person__contact:hover { text-decoration: underline; }
+
+.team { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+.team__more { color: var(--gray); font-size: 0.82rem; }
 
 /* Datos en pares (fechas, contacto) */
 .facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
@@ -144,4 +275,15 @@ a.wizard__item:hover { color: var(--bone); border-color: var(--gray); }
     .wizard__item--current .wizard__text { display: inline; }
     .wizard__item--current { padding-right: 14px; }
     .vacancy { flex-wrap: wrap; }
+    .detail { padding: 8px 16px 64px; }
+    .detail-hero { padding: 28px 22px; }
+    .detail-hero__title { font-size: 2.2rem; }
+    .role { flex-wrap: wrap; }
+}
+
+@media (max-width: 900px) {
+    .detail__grid { grid-template-columns: 1fr; }
+    .detail-hero__mark { display: none; }
+    /* En celular la gestión y el creador van primero */
+    .detail__aside { order: -1; }
 }
