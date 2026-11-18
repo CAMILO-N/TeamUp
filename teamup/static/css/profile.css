@@ -178,6 +178,5 @@
     .profile { padding: 8px 16px 64px; }
     .row, .row--wide-first { grid-template-columns: 1fr; }
     .profile-card { padding: 22px 18px; }
-    .navbar__link--user { display: none; }
     .dialog__btn { width: 100%; text-align: center; }
 }

@@ -238,7 +238,6 @@
 }
 
 @media (max-width: 560px) {
-    .navbar__link--admin { padding: 4px 10px; font-size: 0.8rem; }
     .explore__title { font-size: 2.2rem; }
     .explore__head .btn { width: 100%; text-align: center; }
     .denied { padding: 40px 16px 64px; }
