@@ -1,4 +1,6 @@
 <nav class="tabs" aria-label="Secciones de administración">
     <a href="{{ url_for('admin.users') }}" class="tabs__link{{ ' tabs__link--active' if request.path.startswith('/admin/users') }}">Usuarios</a>
     <a href="{{ url_for('admin.projects') }}" class="tabs__link{{ ' tabs__link--active' if request.path.startswith('/admin/projects') }}">Proyectos</a>
+    <a href="{{ url_for('admin.reviews') }}" class="tabs__link{{ ' tabs__link--active' if request.path.startswith('/admin/reviews') }}">Revisión</a>
+    <a href="{{ url_for('admin.words') }}" class="tabs__link{{ ' tabs__link--active' if request.path.startswith('/admin/words') }}">Palabras</a>
 </nav>

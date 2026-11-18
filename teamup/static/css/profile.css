@@ -134,6 +134,13 @@
     border: 1px solid var(--brick);
 }
 
+/* Algo queda pendiente, como un proyecto en revisión */
+.notice--info {
+    color: var(--bone);
+    background: rgba(242, 179, 61, 0.06);
+    border: 1px dashed rgba(242, 179, 61, 0.55);
+}
+
 /* Botones (un <button> no hereda la fuente por defecto) */
 .btn {
     font: inherit;

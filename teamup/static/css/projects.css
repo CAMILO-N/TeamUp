@@ -66,7 +66,8 @@ a.wizard__item:hover { color: var(--bone); border-color: var(--gray); }
     font-weight: 600;
 }
 
-/* Estado borrador */
+/* Estados borrador y en revisión */
+.badge--review { color: var(--ochre); background: rgba(242, 179, 61, 0.14); border-color: rgba(242, 179, 61, 0.55); }
 .badge--draft { color: var(--ochre); background: rgba(242, 179, 61, 0.08); border-color: rgba(242, 179, 61, 0.35); border-style: dashed; }
 
 /* Tarjetas */
