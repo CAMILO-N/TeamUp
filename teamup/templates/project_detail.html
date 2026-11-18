@@ -48,10 +48,13 @@
                 <h1 class="detail-hero__title">{{ project.title }}</h1>
                 {% if project.summary %}<p class="detail-hero__summary">{{ project.summary }}</p>{% endif %}
                 <ul class="detail-hero__meta">
-                    {% if project.start_date %}<li class="detail-hero__fact">{{ icon("calendar") }}Inicia el {{ project.start_date.strftime('%d/%m/%Y') }}</li>{% endif %}
+                    {% if project.is_finished and project.finished_at %}<li class="detail-hero__fact detail-hero__fact--done">{{ icon("calendar") }}Terminó el {{ project.finished_at.strftime('%d/%m/%Y') }}{% if project.duration_days is not none %} · duró {{ project.duration_days }} día{{ '' if project.duration_days == 1 else 's' }}{% endif %}</li>
+                    {% elif project.start_date %}<li class="detail-hero__fact">{{ icon("calendar") }}Inicia el {{ project.start_date.strftime('%d/%m/%Y') }}</li>{% endif %}
                     {% if project.weekly_hours %}<li class="detail-hero__fact">{{ icon("clock") }}{{ project.weekly_hours_label }}</li>{% endif %}
                     {% if project.modality %}<li class="detail-hero__fact">{{ icon("pin") }}{{ project.modality_label }}</li>{% endif %}
-                    {% if project.vacancies %}<li class="detail-hero__fact">{{ icon("people") }}{{ project.total_slots }} lugar{{ '' if project.total_slots == 1 else 'es' }} en {{ project.vacancies|length }} rol{{ '' if project.vacancies|length == 1 else 'es' }}</li>{% endif %}
+                    {# Los lugares libres solo importan mientras busca gente #}
+                    {% if project.vacancies and project.status == "open" %}<li class="detail-hero__fact">{{ icon("people") }}{{ project.total_slots }} lugar{{ '' if project.total_slots == 1 else 'es' }} en {{ project.vacancies|length }} rol{{ '' if project.vacancies|length == 1 else 'es' }}</li>
+                    {% elif project.vacancies %}<li class="detail-hero__fact">{{ icon("people") }}{{ project.vacancies|length }} rol{{ '' if project.vacancies|length == 1 else 'es' }}</li>{% endif %}
                 </ul>
             </div>
             <div class="detail-hero__mark" aria-hidden="true">
@@ -71,7 +74,7 @@
                     <div class="section-head">
                         <div>
                             <p class="wizard-eyebrow">{{ 'Súmate al equipo' if project.status == 'open' else 'El equipo' }}</p>
-                            <h2 class="profile-card__title">Roles {{ 'abiertos' if project.status == 'open' else 'del equipo' }}</h2>
+                            <h2 class="profile-card__title">Roles {{ 'abiertos' if project.status == 'open' else 'que tuvo' if project.is_finished else 'del equipo' }}</h2>
                         </div>
                         <span class="detail__count">{{ project.vacancies|length }} rol{{ '' if project.vacancies|length == 1 else 'es' }}</span>
                     </div>
@@ -86,7 +89,7 @@
                                 <p class="role__name">{{ vacancy.role_name }}</p>
                                 <p class="role__meta">{{ vacancy.major_label }} · {{ 'Con experiencia' if vacancy.requires_experience else 'Sin experiencia necesaria' }}</p>
                             </div>
-                            <span class="role__slots">{{ vacancy.slots }} lugar{{ '' if vacancy.slots == 1 else 'es' }}</span>
+                            {% if project.status == "open" %}<span class="role__slots">{{ vacancy.slots }} lugar{{ '' if vacancy.slots == 1 else 'es' }}</span>{% endif %}
                             {# Aquí va el botón "Postularme" de cada rol (lo hace Sebastián con las postulaciones; solo si el proyecto está abierto y no es del usuario) #}
                         </li>
                         {% endfor %}
@@ -98,7 +101,7 @@
 
                 <section class="profile-card">
                     <h2 class="profile-card__title">Ritmo y fechas</h2>
-                    <dl class="facts">
+                    <dl class="facts facts--two">
                         <div class="facts__item"><dt class="facts__label">Inicio</dt><dd class="facts__value">{{ project.start_date.strftime('%d/%m/%Y') if project.start_date else '—' }}</dd></div>
                         <div class="facts__item"><dt class="facts__label">Cierre estimado</dt><dd class="facts__value">{{ project.estimated_end_date.strftime('%d/%m/%Y') if project.estimated_end_date else '—' }}</dd></div>
                         <div class="facts__item"><dt class="facts__label">Dedicación</dt><dd class="facts__value">{{ project.weekly_hours_label if project.weekly_hours else '—' }}</dd></div>
@@ -183,12 +186,18 @@
                 </section>
 
                 <section class="profile-card">
-                    <p class="wizard-eyebrow">Equipo actual</p>
-                    <div class="team">
-                        <span class="person__avatar person__avatar--sm" title="{{ project.owner.first_name }} {{ project.owner.last_name }}">{{ project.owner.initials }}</span>
-                        {# Aquí van los integrantes aceptados en las postulaciones (lo hace Sebastián) #}
-                        {% if project.total_slots and project.status == "open" %}<span class="team__more">+{{ project.total_slots }} lugar{{ '' if project.total_slots == 1 else 'es' }}</span>{% endif %}
-                    </div>
+                    <p class="wizard-eyebrow">{{ 'Equipo' if project.is_finished else 'Equipo actual' }}</p>
+                    <ul class="team">
+                        <li class="team__member">
+                            <span class="person__avatar person__avatar--sm" aria-hidden="true">{{ project.owner.initials }}</span>
+                            <div>
+                                <p class="team__name">{{ project.owner.first_name }} {{ project.owner.last_name }}</p>
+                                <p class="person__meta">Creador del proyecto</p>
+                            </div>
+                        </li>
+                        {# Aquí van los integrantes aceptados en las postulaciones, con su rol (lo hace Sebastián) #}
+                    </ul>
+                    {% if project.total_slots and project.status == "open" %}<p class="team__more">Faltan {{ project.total_slots }} lugar{{ '' if project.total_slots == 1 else 'es' }} por llenar.</p>{% endif %}
                 </section>
             </aside>
         </div>

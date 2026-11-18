@@ -118,7 +118,7 @@ a.wizard__item:hover { color: var(--bone); border-color: var(--gray); }
 
 /* Página del proyecto */
 .detail {
-    max-width: 1140px;
+    max-width: 1280px;
     margin: 0 auto;
     padding: 16px 32px 80px;
 }
@@ -151,6 +151,7 @@ a.wizard__item:hover { color: var(--bone); border-color: var(--gray); }
 .detail-hero__meta { display: flex; flex-wrap: wrap; gap: 8px 22px; list-style: none; margin-top: 16px; }
 .detail-hero__fact { display: inline-flex; align-items: center; gap: 6px; color: var(--gray); font-size: 0.85rem; }
 .detail-hero__icon { flex: none; }
+.detail-hero__fact--done { color: #7BC47F; }
 
 .detail-hero__mark {
     display: flex;
@@ -251,11 +252,14 @@ a.wizard__item:hover { color: var(--bone); border-color: var(--gray); }
 .person__contact { color: var(--coral); font-size: 0.88rem; overflow-wrap: anywhere; }
 .person__contact:hover { text-decoration: underline; }
 
-.team { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
-.team__more { color: var(--gray); font-size: 0.82rem; }
+.team { display: flex; flex-direction: column; gap: 12px; list-style: none; margin-top: 14px; }
+.team__member { display: flex; align-items: center; gap: 12px; }
+.team__name { font-weight: 600; font-size: 0.92rem; }
+.team__more { color: var(--gray); font-size: 0.82rem; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
 
 /* Datos en pares (fechas, contacto) */
 .facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.facts--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .facts__label { color: var(--gray); font-size: 0.78rem; margin-bottom: 4px; }
 .facts__value { font-weight: 500; overflow-wrap: anywhere; }
 .facts__link { color: var(--coral); }
