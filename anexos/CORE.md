@@ -131,6 +131,13 @@ users >──< skills
     - Por facultad o carrera salen los proyectos con un rol abierto para esa carrera **o para cualquier carrera**.
     - "Mis proyectos" (`/my-projects`): publicados, borradores y terminados, con sus acciones. "Terminar proyecto" pone `finished_at` y muestra la duración en días (`Project.finish()`; no se puede antes de la fecha de inicio).
     - **Para Sebastián:** en `my_projects.html` hay un comentario donde van las postulaciones de cada proyecto (aceptar o rechazar).
+    - **Gestión del proyecto (2026-11-18):** el dueño maneja su proyecto desde la página del proyecto, no desde las tarjetas. En Mis proyectos cada tarjeta tiene solo "Gestionar" (o "Continuar" si es borrador). En la página hay un panel "Gestión" con el estado (Abierto → En curso → Terminado) y los botones:
+        - **Arrancar proyecto** (`open` → `in_progress`): el equipo ya está; sale de Explorar pero su página sigue visible.
+        - **Volver a buscar gente** (`in_progress` → `open`): si alguien se va; vuelve a Explorar.
+        - **Terminar proyecto**, y además Editar, Ocultar y Borrar.
+        - Rutas: `POST /projects/<id>/start`, `/reopen`, `/finish` (`change_status`); la lógica está en `Project.start()`, `reopen()` y `finish()`.
+    - La página del proyecto sigue el diseño de Figma: portada con categoría y estado, "La idea", roles, "Creado por" (sin "Enviar mensaje": el contacto es el correo) y "Equipo actual".
+    - **Para Sebastián:** en `project_detail.html` hay comentarios donde van el botón "Postularme" (solo si el proyecto está `open` y no es del usuario), el "Sobre mí" y el número del creador, y los integrantes aceptados en "Equipo actual". En `my_projects.html` puede ir cuántas postulaciones nuevas tiene cada proyecto.
 6. **Notificaciones** (la campana).
 7. **Moderación:** filtro de palabras, reportes y cola de validación del admin. **Hecha la parte de Camilo (2026-11-18): filtro de palabras y cola de revisión, aplicado en Neon `dev`.** Los reportes son de Sebastián.
     - Tablas `banned_words` y `validation_requests` (modelos `BannedWord` y `ValidationRequest`).
