@@ -114,8 +114,7 @@ TeamUp/
 | **Python 3.14** | Lenguaje del backend |
 | **Flask** | Framework web, con patrón MVC y Blueprints |
 | **Flask-SQLAlchemy** | ORM: las tablas se manejan como clases de Python |
-| **PostgreSQL** (Neon) + **psycopg** | Base de datos de la página publicada |
-| **SQL Server** + **pyodbc** | Base de datos local (opcional) |
+| **PostgreSQL** (Neon) + **psycopg** | Base de datos, con una rama de producción y otra de pruebas |
 | **Vercel** | Publicación de la página, conectada a GitHub |
 | **Flask-Login** | Sesiones de usuario y protección de rutas |
 | **Flask-WTF** | Formularios, validaciones y protección CSRF |

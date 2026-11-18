@@ -1,0 +1,115 @@
+{# Panel del administrador: cola de revisión (filtro de palabras y reportes).
+   Espera: pending y decided (ValidationRequest), csrf_form.
+   Envía (POST, sin campos): admin.decide_review con decision = approve | reject #}
+{% from "_fields.html" import csrf_input %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revisión · Administración · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/projects.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main class="admin">
+        <h1 class="admin__title">Panel de <span class="highlight">administración</span></h1>
+        <p class="admin__subtitle">Los proyectos en revisión no aparecen en Explorar hasta que los apruebes; si rechazas uno, vuelve a borrador. Los terminados piden entrar a la Vitrina: si los apruebas, aparecen ahí.</p>
+
+        {% include "_admin_tabs.html" %}
+        {% include "_flash.html" %}
+
+        <p class="admin__count">{{ pending|length }} pendiente{{ '' if pending|length == 1 else 's' }}</p>
+
+        {% if pending %}
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Proyecto</th>
+                        <th>Motivo</th>
+                        <th>Desde</th>
+                        <th class="table__end">Decisión</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for review in pending %}
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <a href="{{ url_for('projects.detail', project_id=review.project.id) }}" class="user-cell__name project-card__link">{{ review.project.title }}</a>
+                                <span class="user-cell__meta">{% if review.project.owner %}@{{ review.project.owner.username }}{% endif %}</span>
+                            </div>
+                        </td>
+                        <td data-label="Motivo">
+                            <div class="user-cell">
+                                <span class="badge badge--review user-cell__badge">{{ review.source_label }}</span>
+                                {% if review.detail %}<span class="user-cell__meta">{{ review.detail }}</span>{% endif %}
+                            </div>
+                        </td>
+                        <td data-label="Desde">{{ review.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td data-label="Decisión" class="table__end">
+                            <div class="actions">
+                                <form method="POST" action="{{ url_for('admin.decide_review', review_id=review.id, decision='approve') }}">
+                                    {{ csrf_input(csrf_form) }}
+                                    <button type="submit" class="btn btn--primary btn--sm">Aprobar</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin.decide_review', review_id=review.id, decision='reject') }}">
+                                    {{ csrf_input(csrf_form) }}
+                                    <button type="submit" class="btn btn--outline-danger btn--sm">Rechazar</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty">
+            <p class="empty__title">No hay proyectos por revisar</p>
+            <p class="empty__text">Cuando un proyecto use una palabra del filtro o lo reporten, aparecerá aquí.</p>
+        </div>
+        {% endif %}
+
+        {% if decided %}
+        <h2 class="section-title">Revisados hace poco</h2>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Proyecto</th>
+                        <th>Motivo</th>
+                        <th>Decisión</th>
+                        <th class="table__end">Por</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for review in decided %}
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <a href="{{ url_for('projects.detail', project_id=review.project.id) }}" class="user-cell__name project-card__link">{{ review.project.title }}</a>
+                                <span class="user-cell__meta">Ahora: {{ review.project.status_label|lower }}</span>
+                            </div>
+                        </td>
+                        <td data-label="Motivo"><span class="user-cell__meta">{{ review.source_label }}</span></td>
+                        <td data-label="Decisión"><span class="badge {{ 'badge--ok' if review.status == 'approved' else 'badge--off' }}">{{ review.status_label }}</span></td>
+                        <td data-label="Por" class="table__end">{% if review.reviewed_by %}@{{ review.reviewed_by.username }}{% else %}—{% endif %} · {{ review.reviewed_at.strftime('%d/%m/%Y') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </main>
+
+</body>
+</html>

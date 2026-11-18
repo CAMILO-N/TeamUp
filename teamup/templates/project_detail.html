@@ -1,0 +1,247 @@
+{# Detalle de un proyecto. Lo ve cualquiera si está publicado; un borrador u oculto, solo su dueño y el admin.
+   Espera: project, is_owner y csrf_form (solo para el dueño, que ve además el panel de gestión).
+   Un proyecto terminado es solo para ver: la gestión muestra si está en la Vitrina, sin botones.
+   Envía (POST, sin campos): projects.change_status con change = start | reopen | finish,
+   y projects.project_action con action = hide | show | delete.
+   Postulaciones: quien no es el dueño ve "Postularme" en cada rol con lugar (va a applications.apply);
+   el dueño ve el enlace a sus postulaciones (applications.manage). El equipo son las postulaciones aceptadas. #}
+{% from "_fields.html" import csrf_input %}
+{% from "_projects.html" import status_badge, actions %}
+
+{% macro icon(name) %}
+<svg class="detail-hero__icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    {% if name == "calendar" %}<rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path>
+    {% elif name == "clock" %}<circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>
+    {% elif name == "people" %}<circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.3c2.1.7 3.5 2.6 3.5 5.7"></path>
+    {% elif name == "pin" %}<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle>
+    {% endif %}
+</svg>
+{% endmacro %}
+
+{% set steps = [("open", "Abierto"), ("in_progress", "En curso"), ("finished", "Terminado")] %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project.title }} · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/projects.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main class="detail">
+        <a href="{{ url_for('projects.mine') if is_owner else url_for('main.explore') }}" class="profile__back">&larr; {{ 'Volver a Mis proyectos' if is_owner else 'Volver a Explorar' }}</a>
+
+        {% include "_flash.html" %}
+
+        <section class="detail-hero">
+            <div class="detail-hero__body">
+                <div class="detail__badges">
+                    {% if project.category %}<span class="chip-tag">{{ project.category.name }}</span>{% endif %}
+                    {{ status_badge(project) }}
+                </div>
+                <h1 class="detail-hero__title">{{ project.title }}</h1>
+                {% if project.summary %}<p class="detail-hero__summary">{{ project.summary }}</p>{% endif %}
+                <ul class="detail-hero__meta">
+                    {% if project.is_finished and project.finished_at %}<li class="detail-hero__fact detail-hero__fact--done">{{ icon("calendar") }}Terminó el {{ project.finished_at.strftime('%d/%m/%Y') }}{% if project.duration_days is not none %} · duró {{ project.duration_days }} día{{ '' if project.duration_days == 1 else 's' }}{% endif %}</li>
+                    {% elif project.start_date %}<li class="detail-hero__fact">{{ icon("calendar") }}Inicia el {{ project.start_date.strftime('%d/%m/%Y') }}</li>{% endif %}
+                    {% if project.weekly_hours %}<li class="detail-hero__fact">{{ icon("clock") }}{{ project.weekly_hours_label }}</li>{% endif %}
+                    {% if project.modality %}<li class="detail-hero__fact">{{ icon("pin") }}{{ project.modality_label }}</li>{% endif %}
+                    {# Los lugares libres solo importan mientras busca gente #}
+                    {% if project.vacancies and project.status == "open" %}<li class="detail-hero__fact">{{ icon("people") }}{{ project.free_slots }} lugar{{ '' if project.free_slots == 1 else 'es' }} libre{{ '' if project.free_slots == 1 else 's' }} en {{ project.vacancies|length }} rol{{ '' if project.vacancies|length == 1 else 'es' }}</li>
+                    {% elif project.vacancies %}<li class="detail-hero__fact">{{ icon("people") }}{{ project.vacancies|length }} rol{{ '' if project.vacancies|length == 1 else 'es' }}</li>{% endif %}
+                </ul>
+            </div>
+            <div class="detail-hero__mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 2c.6 4.8 2.9 7.3 8 8-5.1.7-7.4 3.2-8 8-.6-4.8-2.9-7.3-8-8 5.1-.7 7.4-3.2 8-8z"></path></svg>
+                <span class="detail-hero__initials">{{ project.initials }}</span>
+            </div>
+        </section>
+
+        <div class="detail__grid">
+            <div class="detail__main">
+                <section class="profile-card">
+                    <h2 class="profile-card__title">La idea</h2>
+                    <p class="detail__text">{{ project.description }}</p>
+                </section>
+
+                <section class="profile-card">
+                    <div class="section-head">
+                        <div>
+                            <p class="wizard-eyebrow">{{ 'Súmate al equipo' if project.status == 'open' else 'El equipo' }}</p>
+                            <h2 class="profile-card__title">Roles {{ 'abiertos' if project.status == 'open' else 'que tuvo' if project.is_finished else 'del equipo' }}</h2>
+                        </div>
+                        <span class="detail__count">{{ project.vacancies|length }} rol{{ '' if project.vacancies|length == 1 else 'es' }}</span>
+                    </div>
+                    {% if project.vacancies %}
+                    <ul class="role-list">
+                        {% for vacancy in project.vacancies %}
+                        <li class="role">
+                            <span class="role__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path></svg>
+                            </span>
+                            <div class="role__info">
+                                <p class="role__name">{{ vacancy.role_name }}</p>
+                                <p class="role__meta">{{ vacancy.major_label }} · {{ 'Con experiencia' if vacancy.requires_experience else 'Sin experiencia necesaria' }}</p>
+                            </div>
+                            {% if project.status == "open" %}<span class="role__slots">{{ vacancy.free_slots }} de {{ vacancy.slots }} libre{{ '' if vacancy.slots == 1 else 's' }}</span>{% endif %}
+                            {# Postularme: solo si el proyecto está abierto y no es del usuario. Las reglas las vuelve a revisar el servidor #}
+                            {% if not is_owner and project.status == "open" and not project.is_hidden %}
+                            {% set mine = vacancy.application_of(current_user) %}
+                            {% if mine and not mine.is_withdrawn %}
+                            <a href="{{ url_for('applications.mine') }}" class="badge app-status app-status--{{ mine.status }}">{{ mine.status_label }}</a>
+                            {% elif vacancy.free_slots == 0 %}
+                            <span class="badge badge--off">Completo</span>
+                            {% elif vacancy.apply_blocker(current_user) is none %}
+                            <a href="{{ url_for('applications.apply', vacancy_id=vacancy.id) }}" class="btn btn--primary btn--sm">Postularme</a>
+                            {% else %}
+                            <span class="role__note">Solo para {{ vacancy.major_label }}</span>
+                            {% endif %}
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="profile-card__note">Todavía no hay roles.</p>
+                    {% endif %}
+                </section>
+
+                <section class="profile-card">
+                    <h2 class="profile-card__title">Ritmo y fechas</h2>
+                    <dl class="facts facts--two">
+                        <div class="facts__item"><dt class="facts__label">Inicio</dt><dd class="facts__value">{{ project.start_date.strftime('%d/%m/%Y') if project.start_date else '—' }}</dd></div>
+                        <div class="facts__item"><dt class="facts__label">Cierre estimado</dt><dd class="facts__value">{{ project.estimated_end_date.strftime('%d/%m/%Y') if project.estimated_end_date else '—' }}</dd></div>
+                        <div class="facts__item"><dt class="facts__label">Dedicación</dt><dd class="facts__value">{{ project.weekly_hours_label if project.weekly_hours else '—' }}</dd></div>
+                        <div class="facts__item"><dt class="facts__label">Modalidad</dt><dd class="facts__value">{{ project.modality_label if project.modality else '—' }}</dd></div>
+                        {% if project.finished_at %}
+                        <div class="facts__item"><dt class="facts__label">Terminó</dt><dd class="facts__value">{{ project.finished_at.strftime('%d/%m/%Y') }}{% if project.duration_days is not none %} · {{ project.duration_days }} día{{ '' if project.duration_days == 1 else 's' }}{% endif %}</dd></div>
+                        {% endif %}
+                    </dl>
+                </section>
+            </div>
+
+            <aside class="detail__aside">
+                {% if is_owner %}
+                <section class="profile-card manage">
+                    <p class="wizard-eyebrow">Gestión</p>
+                    <h2 class="profile-card__title">Estado del proyecto</h2>
+
+                    {% if project.status in ("open", "in_progress", "finished") %}
+                    <ol class="status-steps">
+                        {% set current = steps|map(attribute=0)|list %}
+                        {% for value, text in steps %}
+                        <li class="status-steps__item{% if value == project.status %} status-steps__item--current{% elif loop.index0 < current.index(project.status) %} status-steps__item--done{% endif %}">{{ text }}</li>
+                        {% endfor %}
+                    </ol>
+                    {% endif %}
+
+                    <p class="manage__text">
+                        {% if project.is_hidden %}Está oculto: nadie más lo ve hasta que lo muestres.
+                        {% elif project.is_draft %}Es un borrador: termina los pasos y publícalo.
+                        {% elif project.is_in_review %}Un administrador lo está revisando antes de que aparezca en Explorar.
+                        {% elif project.status == "open" %}Aparece en Explorar y busca gente. Cuando el equipo esté listo, arráncalo.
+                        {% elif project.status == "in_progress" %}El equipo está trabajando y ya no aparece en Explorar. Si alguien se va, vuelve a buscar gente.
+                        {% elif project.is_finished %}Terminó{% if project.duration_days is not none %} después de {{ project.duration_days }} día{{ '' if project.duration_days == 1 else 's' }}{% endif %}. Ya no se puede editar ni cambiar de estado.
+                        {% endif %}
+                    </p>
+
+                    {% if project.status in ("open", "in_progress") %}
+                    <div class="manage__buttons">
+                        {% if project.status == "open" %}
+                        <form method="POST" action="{{ url_for('projects.change_status', project_id=project.id, change='start') }}">
+                            {{ csrf_input(csrf_form) }}
+                            <button type="submit" class="btn btn--primary manage__btn">Arrancar proyecto</button>
+                        </form>
+                        {% else %}
+                        <form method="POST" action="{{ url_for('projects.change_status', project_id=project.id, change='reopen') }}">
+                            {{ csrf_input(csrf_form) }}
+                            <button type="submit" class="btn btn--secondary manage__btn">Volver a buscar gente</button>
+                        </form>
+                        {% endif %}
+                        <form method="POST" action="{{ url_for('projects.change_status', project_id=project.id, change='finish') }}">
+                            {{ csrf_input(csrf_form) }}
+                            <button type="submit" class="btn btn--outline-danger manage__btn">Terminar proyecto</button>
+                        </form>
+                    </div>
+                    {% endif %}
+
+                    {% if not project.is_draft %}
+                    {% set waiting = project.pending_applications|length %}
+                    <a href="{{ url_for('applications.manage', project_id=project.id) }}" class="btn btn--secondary manage__btn manage__applications">
+                        Postulaciones{% if waiting %} <span class="count-pill">{{ waiting }} nueva{{ '' if waiting == 1 else 's' }}</span>{% endif %}
+                    </a>
+                    {% endif %}
+
+                    {% if project.is_finished %}
+                    {% set showcase = project.showcase_status %}
+                    <p class="manage__showcase manage__showcase--{{ showcase or 'none' }}">
+                        {% if showcase == "approved" %}Aparece en la Vitrina.
+                        {% elif showcase == "pending" %}Esperando que un administrador lo apruebe para la Vitrina.
+                        {% elif showcase == "rejected" %}Un administrador no lo aprobó para la Vitrina.
+                        {% else %}No está en la Vitrina.{% endif %}
+                    </p>
+                    {% else %}
+                    <div class="manage__more">{{ actions(project, "projects", csrf_form) }}</div>
+                    {% endif %}
+                </section>
+                {% endif %}
+
+                <section class="profile-card">
+                    <p class="wizard-eyebrow">Creado por</p>
+                    <div class="person">
+                        <span class="person__avatar" aria-hidden="true">{{ project.owner.initials }}</span>
+                        <div>
+                            <a href="{{ url_for('profile.public', username=project.owner.username) }}" class="person__name person__link">{{ project.owner.full_name }}</a>
+                            <p class="person__meta">{{ project.owner.major.name }} · {{ project.owner.semester }}.º semestre</p>
+                        </div>
+                    </div>
+                    {% if project.owner.bio %}<p class="person__bio">{{ project.owner.bio|truncate(220) }}</p>{% endif %}
+                    {# Contacto: el correo institucional y, si lo puso en su perfil, el número #}
+                    <a href="mailto:{{ project.owner.email }}" class="person__contact">{{ project.owner.email }}</a>
+                    {% if project.owner.phone %}<a href="tel:{{ project.owner.phone }}" class="person__contact person__phone">{{ project.owner.phone }}</a>{% endif %}
+                </section>
+
+                <section class="profile-card">
+                    <p class="wizard-eyebrow">{{ 'Equipo' if project.is_finished else 'Equipo actual' }}</p>
+                    <ul class="team">
+                        <li class="team__member">
+                            <span class="person__avatar person__avatar--sm" aria-hidden="true">{{ project.owner.initials }}</span>
+                            <div>
+                                <p class="team__name">{{ project.owner.first_name }} {{ project.owner.last_name }}</p>
+                                <p class="person__meta">Creador del proyecto</p>
+                            </div>
+                        </li>
+                        {# Los integrantes son las postulaciones aceptadas, con su rol #}
+                        {% for member in project.members %}
+                        <li class="team__member">
+                            <span class="person__avatar person__avatar--sm person__avatar--member" aria-hidden="true">{{ member.user.initials }}</span>
+                            <div>
+                                <a href="{{ url_for('profile.public', username=member.user.username) }}" class="team__name person__link">{{ member.user.full_name }}</a>
+                                <p class="person__meta">{{ member.vacancy.role_name }}</p>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% if project.free_slots and project.status == "open" %}<p class="team__more">Faltan {{ project.free_slots }} lugar{{ '' if project.free_slots == 1 else 'es' }} por llenar.</p>{% endif %}
+                </section>
+
+                {% if not is_owner and project.can_be_reported %}
+                <a href="{{ url_for('reports.new', project_id=project.id) }}" class="report-link">Reportar este proyecto</a>
+                {% endif %}
+            </aside>
+        </div>
+    </main>
+
+    {% if is_owner and not project.is_finished %}
+    {% include "_delete_dialog.html" %}
+    <script src="{{ url_for('static', filename='js/confirm-delete.js') }}"></script>
+    {% endif %}
+</body>
+</html>

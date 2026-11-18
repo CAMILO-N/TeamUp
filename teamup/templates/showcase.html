@@ -1,0 +1,53 @@
+{# Vitrina: proyectos terminados del campus, para ver lo que ya se hizo.
+   Espera: projects (terminados y no ocultos). #}
+{% from "_projects.html" import card %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vitrina · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/projects.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main>
+        <section class="explore">
+            <div class="explore__head">
+                <div>
+                    <h1 class="explore__title"><span class="highlight">Vitrina</span></h1>
+                    <p class="explore__text">Proyectos que el campus ya terminó. Mira cómo quedaron y quiénes los hicieron.</p>
+                </div>
+            </div>
+
+            {% if projects %}
+            <h2 class="section-title">Terminados <span class="section-title__count">({{ projects|length }})</span></h2>
+            <div class="projects">
+                {% for p in projects %}
+                {% call card(p) %}
+                <div class="project-card__footer">
+                    <span class="badge badge--ok">Terminado</span>
+                    {% if p.duration_days is not none %}<p class="project-card__meta">Duró {{ p.duration_days }} día{{ '' if p.duration_days == 1 else 's' }}</p>{% endif %}
+                </div>
+                {% endcall %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty">
+                <p class="empty__title">Todavía no hay proyectos terminados</p>
+                <p class="empty__text">Cuando un equipo termine su proyecto, aparecerá aquí.</p>
+                <a href="{{ url_for('main.explore') }}" class="btn btn--secondary">Ver proyectos abiertos</a>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+
+</body>
+</html>

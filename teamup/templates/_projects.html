@@ -1,14 +1,20 @@
-{# Piezas de proyectos que se repiten en Explorar y en el panel de administración.
-   Un proyecto debe tener: id, title, description, is_hidden, owner (con .username) #}
+{# Piezas de proyectos que se repiten en Explorar, el detalle y el panel de administración. #}
 {% from "_fields.html" import csrf_input %}
 
+{# Estado del proyecto: oculto por el admin, borrador, abierto... #}
 {% macro status_badge(project) %}
-{% if project.is_hidden %}<span class="badge badge--off">Oculto</span>{% else %}<span class="badge badge--ok">Visible</span>{% endif %}
+{% if project.is_hidden %}<span class="badge badge--off">Oculto</span>
+{% elif project.is_draft %}<span class="badge badge--draft">{{ project.status_label }}</span>
+{% elif project.is_in_review %}<span class="badge badge--review">{{ project.status_label }}</span>
+{% else %}<span class="badge badge--ok">{{ project.status_label }}</span>{% endif %}
 {% endmacro %}
 
-{# Botones ocultar/mostrar y borrar. scope = "admin" (administrador) o "projects" (dueño) #}
+{# Botones del proyecto. scope = "admin" (administrador) o "projects" (dueño) #}
 {% macro actions(project, scope, csrf_form) %}
 <div class="actions">
+    {% if scope == "projects" %}
+    <a href="{{ url_for('projects.preview', project_id=project.id) }}" class="btn btn--primary btn--sm">{{ 'Continuar' if project.is_draft else 'Editar' }}</a>
+    {% endif %}
     <form method="POST" action="{{ url_for(scope ~ '.project_action', project_id=project.id, action='show' if project.is_hidden else 'hide') }}">
         {{ csrf_input(csrf_form) }}
         <button type="submit" class="btn btn--secondary btn--sm">{{ 'Mostrar' if project.is_hidden else 'Ocultar' }}</button>
@@ -18,11 +24,109 @@
 </div>
 {% endmacro %}
 
-{% macro card(project, show_owner=true) %}
-<article class="project-card{{ ' project-card--hidden' if project.is_hidden }}">
-    <h3 class="project-card__title">{{ project.title }}</h3>
-    <p class="project-card__text">{{ project.description }}</p>
-    {% if show_owner and project.owner %}<p class="project-card__owner">por <span class="highlight">@{{ project.owner.username }}</span></p>{% endif %}
+{# Iconos pequeños de las tarjetas #}
+{% macro card_icon(name) %}
+<svg class="project-card__icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    {% if name == "pin" %}<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle>
+    {% elif name == "clock" %}<circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>
+    {% elif name == "people" %}<circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.3c2.1.7 3.5 2.6 3.5 5.7"></path>
+    {% endif %}
+</svg>
+{% endmacro %}
+
+{# Tarjeta de Explorar, la Vitrina, Mis proyectos y el perfil público.
+   featured = true la resalta (sección "Para ti" de Explorar). Lo que va dentro del {% call %} se agrega al final.
+   data = atributos data-* para el filtro instantáneo de Explorar; hidden = empieza escondida. #}
+{% macro card(project, show_owner=true, featured=false, data=none, hidden=false) %}
+{% set open_roles = project.vacancies|selectattr("is_open")|list if project.status == "open" else [] %}
+<article class="project-card{{ ' project-card--hidden' if project.is_hidden }}{{ ' project-card--featured' if featured }}"
+    {%- if data %}{% for key, value in data.items() %} data-{{ key }}="{{ value }}"{% endfor %}{% endif %}{{ ' hidden' if hidden }}>
+    <div class="project-card__top">
+        <span class="project-card__mark" aria-hidden="true">{{ project.initials }}</span>
+        {% if project.category %}<span class="chip-tag">{{ project.category.name }}</span>{% endif %}
+    </div>
+    <h3 class="project-card__title"><a href="{{ url_for('projects.detail', project_id=project.id) }}" class="project-card__link">{{ project.title }}</a></h3>
+    <p class="project-card__text">{{ project.summary or project.description }}</p>
+
+    {% if project.modality or project.weekly_hours %}
+    <ul class="project-card__facts">
+        {% if project.modality %}<li class="project-card__fact">{{ card_icon("pin") }}{{ project.modality_label }}</li>{% endif %}
+        {% if project.weekly_hours %}<li class="project-card__fact">{{ card_icon("clock") }}{{ project.weekly_hours_label }}</li>{% endif %}
+    </ul>
+    {% endif %}
+
+    {# Mientras busca gente se ven sus roles abiertos; si no, cuántos roles tiene #}
+    {% if open_roles %}
+    <ul class="project-card__roles">
+        {% for vacancy in open_roles[:3] %}<li class="project-card__role">{{ vacancy.role_name }}</li>{% endfor %}
+        {% if open_roles|length > 3 %}<li class="project-card__role project-card__role--more">+{{ open_roles|length - 3 }}</li>{% endif %}
+    </ul>
+    {% elif project.vacancies %}
+    <p class="project-card__meta">{{ project.vacancies|length }} rol{{ '' if project.vacancies|length == 1 else 'es' }}</p>
+    {% endif %}
+
+    {% if show_owner and project.owner %}
+    <div class="project-card__bottom">
+        <span class="project-card__owner">
+            <span class="person__avatar person__avatar--xs" aria-hidden="true">{{ project.owner.initials }}</span>
+            @{{ project.owner.username }}
+        </span>
+        {% if project.status == "open" and project.free_slots %}
+        <span class="project-card__slots">{{ card_icon("people") }}{{ project.free_slots }} libre{{ '' if project.free_slots == 1 else 's' }}</span>
+        {% endif %}
+    </div>
+    {% endif %}
     {{ caller() if caller }}
 </article>
+{% endmacro %}
+
+{# Contenido completo del proyecto. Lo usan la vista previa (edit=true, con enlaces para editar cada parte) y el detalle. #}
+{% macro sections(project, edit=false) %}
+<section class="profile-card">
+    <div class="section-head">
+        <h2 class="profile-card__title">Sobre el proyecto</h2>
+        {% if edit %}<a href="{{ url_for('projects.info', project_id=project.id) }}" class="section-head__edit">Editar</a>{% endif %}
+    </div>
+    {% if project.summary %}<p class="detail__summary">{{ project.summary }}</p>{% endif %}
+    <p class="detail__text">{{ project.description }}</p>
+</section>
+
+<section class="profile-card">
+    <div class="section-head">
+        <h2 class="profile-card__title">Roles que busca</h2>
+        {% if edit %}<a href="{{ url_for('projects.roles', project_id=project.id) }}" class="section-head__edit">Editar</a>{% endif %}
+    </div>
+    {% if project.vacancies %}
+    <ul class="vacancy-list">
+        {% for vacancy in project.vacancies %}
+        <li class="vacancy">
+            <div class="vacancy__info">
+                <p class="vacancy__role">{{ vacancy.role_name }}</p>
+                <p class="vacancy__meta">{{ vacancy.major_label }}{% if vacancy.requires_experience %} · con experiencia{% else %} · sin experiencia{% endif %}</p>
+            </div>
+            <span class="vacancy__slots">{{ vacancy.slots }} cupo{{ '' if vacancy.slots == 1 else 's' }}</span>
+            {# Aquí va el botón "Postularme" de cada rol (lo hace Sebastián con las postulaciones) #}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="profile-card__note">Todavía no hay roles.</p>
+    {% endif %}
+</section>
+
+<section class="profile-card">
+    <div class="section-head">
+        <h2 class="profile-card__title">Ritmo y fechas</h2>
+        {% if edit %}<a href="{{ url_for('projects.dates', project_id=project.id) }}" class="section-head__edit">Editar</a>{% endif %}
+    </div>
+    <dl class="facts">
+        <div class="facts__item"><dt class="facts__label">Inicio</dt><dd class="facts__value">{{ project.start_date.strftime('%d/%m/%Y') if project.start_date else '—' }}</dd></div>
+        <div class="facts__item"><dt class="facts__label">Cierre estimado</dt><dd class="facts__value">{{ project.estimated_end_date.strftime('%d/%m/%Y') if project.estimated_end_date else '—' }}</dd></div>
+        <div class="facts__item"><dt class="facts__label">Dedicación</dt><dd class="facts__value">{{ project.weekly_hours_label if project.weekly_hours else '—' }}</dd></div>
+        <div class="facts__item"><dt class="facts__label">Modalidad</dt><dd class="facts__value">{{ project.modality_label if project.modality else '—' }}</dd></div>
+        {% if project.finished_at %}
+        <div class="facts__item"><dt class="facts__label">Terminó</dt><dd class="facts__value">{{ project.finished_at.strftime('%d/%m/%Y') }}{% if project.duration_days is not none %} · {{ project.duration_days }} día{{ '' if project.duration_days == 1 else 's' }}{% endif %}</dd></div>
+        {% endif %}
+    </dl>
+</section>
 {% endmacro %}

@@ -1,10 +1,10 @@
-{% from "_fields.html" import csrf, input_field, select_field, dependent_select %}
+{% from "_fields.html" import csrf, input_field, textarea_field, select_field, optional_select, dependent_select %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi perfil · TeamUp</title>
+    <title>Configuración de usuario · TeamUp</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
@@ -16,8 +16,9 @@
 
     <main class="profile">
         <a href="{{ url_for('main.explore') }}" class="profile__back">&larr; Volver a Explorar</a>
-        <h1 class="profile__title">Mi <span class="highlight">perfil</span></h1>
-        <p class="profile__subtitle">Actualiza tus datos para que otros estudiantes te encuentren.</p>
+        <h1 class="profile__title">Configuración de <span class="highlight">usuario</span></h1>
+        <p class="profile__subtitle">Actualiza tus datos para que otros estudiantes te encuentren.
+            <a href="{{ url_for('profile.public', username=current_user.username) }}" class="profile__public-link">Ver mi perfil &rarr;</a></p>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -58,6 +59,24 @@
                     {{ dependent_select(form.major, form.faculty) }}
                     {{ select_field(form.semester) }}
                 </div>
+            </section>
+
+            <section class="profile-card">
+                <h2 class="profile-card__title">Sobre ti</h2>
+                <p class="profile-card__note">Esto aparece en tu perfil público y ayuda a los creadores a conocerte.</p>
+
+                {{ textarea_field(form.bio, "Qué estudias, qué te gusta hacer y en qué proyectos te gustaría participar", 5, hint="Máximo 1000 caracteres.") }}
+                {{ input_field(form.skills, "Ej. Edición de video, Python, Fotografía", "off", hint="Sepáralas con comas. Máximo 10.") }}
+                {{ optional_select(form.availability, "Sin indicar", hint="Cuántas horas por semana puedes dedicar a un proyecto.") }}
+            </section>
+
+            <section class="profile-card">
+                <h2 class="profile-card__title">Contacto y enlaces</h2>
+                <p class="profile-card__note">Opcionales. Tu número solo aparece en los proyectos que creas y para quien revisa tus postulaciones.</p>
+
+                {{ input_field(form.phone, "Ej. 0991234567", "tel", inputmode="tel") }}
+                {{ input_field(form.portfolio_url, "https://", "url", inputmode="url") }}
+                {{ input_field(form.linkedin_url, "https://www.linkedin.com/in/tu-perfil", "url", inputmode="url") }}
             </section>
 
             <section class="profile-card">

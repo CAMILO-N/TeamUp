@@ -1,18 +1,89 @@
-<header class="navbar">
-    <a href="{{ url_for('main.explore') }}" class="navbar__logo">
-        <img class="navbar__logo-img" src="{{ url_for('static', filename='img/logo.png') }}" alt="TeamUp">
+{# Barra lateral de la app (usuario con sesión) y franja de arriba con la campana y el menú del usuario.
+   En celular la lateral pasa arriba y la franja queda debajo, sin la frase. Marca la sección actual según request.endpoint.
+   El menú del usuario (Mi perfil, Configuración, Cerrar sesión) es un <details>: se abre y se cierra sin JavaScript. #}
+{% set endpoint = request.endpoint or "" %}
+{# La página de un proyecto ajeno cuenta como Explorar; la de uno propio, como Mis proyectos #}
+{% set foreign_detail = endpoint in ("projects.detail", "reports.new", "applications.apply") and project is defined and project.owner_id != current_user.id %}
+{# Mi perfil = el perfil público propio; Configuración = el formulario para editar los datos #}
+{% set own_profile = endpoint == "profile.public" and person is defined and person.id == current_user.id %}
+{% set nav_items = [
+    ("main.explore", "Explorar", endpoint == "main.explore" or foreign_detail),
+    ("main.showcase", "Vitrina", endpoint == "main.showcase"),
+    ("projects.mine", "Mis proyectos", (endpoint.startswith("projects.") and endpoint != "projects.new" and not foreign_detail) or endpoint == "applications.manage"),
+    ("applications.mine", "Mis postulaciones", endpoint == "applications.mine"),
+    ("notifications.index", "Notificaciones", endpoint.startswith("notifications.")),
+] %}
+{% if current_user.is_admin %}
+    {% set nav_items = nav_items + [("admin.users", "Admin", endpoint.startswith("admin."))] %}
+{% endif %}
+
+{% macro icon(name) %}
+<svg class="sidebar__icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    {% if name == "main.explore" %}
+    <circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path>
+    {% elif name == "main.showcase" %}
+    <path d="M12 3l9 5-9 5-9-5z"></path><path d="M3 13l9 5 9-5"></path>
+    {% elif name == "projects.mine" %}
+    <path d="M3 7h6l2 2h10v10H3z"></path>
+    {% elif name == "applications.mine" %}
+    <path d="M4 4h16v16H4z"></path><path d="M8 9h8M8 13h8M8 17h5"></path>
+    {% elif name == "notifications.index" %}
+    <path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 20a2 2 0 0 0 4 0"></path>
+    {% elif name == "profile.public" %}
+    <circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path>
+    {% elif name == "profile.edit" %}
+    <circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path>
+    {% elif name == "admin.users" %}
+    <path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"></path>
+    {% elif name == "logout" %}
+    <path d="M15 4h4v16h-4"></path><path d="M10 8l-4 4 4 4"></path><path d="M6 12h10"></path>
+    {% endif %}
+</svg>
+{% endmacro %}
+
+<header class="sidebar">
+    <a href="{{ url_for('main.explore') }}" class="sidebar__logo">
+        <img class="sidebar__logo-img" src="{{ url_for('static', filename='img/logo.png') }}" alt="TeamUp">
     </a>
-    <nav class="navbar__links">
-        {% if current_user.is_authenticated and current_user.is_admin %}
-        <a href="{{ url_for('admin.users') }}" class="navbar__link navbar__link--admin">Admin</a>
-        {% endif %}
-        <span class="navbar__link navbar__link--user">@{{ current_user.username }}</span>
-        <a href="{{ url_for('profile.edit') }}" class="navbar__profile" title="Mi perfil" aria-label="Mi perfil">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="8" r="4"></circle>
-                <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path>
-            </svg>
+
+    <a href="{{ url_for('projects.new') }}" class="btn btn--primary sidebar__new"><span class="btn__arrow">+</span>Nuevo proyecto</a>
+
+    <nav class="sidebar__nav" aria-label="Menú principal">
+        {% for endpoint_name, text, active in nav_items %}
+        <a href="{{ url_for(endpoint_name) }}" class="sidebar__link{% if endpoint_name == 'admin.users' %} sidebar__link--admin{% endif %}{% if active %} sidebar__link--active{% endif %}"{% if active %} aria-current="page"{% endif %}>
+            {{ icon(endpoint_name) }}<span class="sidebar__text">{{ text }}</span>
+            {% if endpoint_name == "notifications.index" and unread_notifications %}<span class="sidebar__count">{{ unread_notifications if unread_notifications < 100 else '99+' }}</span>{% endif %}
         </a>
-        <a href="{{ url_for('auth.logout') }}" class="btn btn--secondary navbar__btn">Cerrar sesión</a>
+        {% endfor %}
     </nav>
 </header>
+
+<div class="topbar">
+    <p class="topbar__tagline">Juntos, las ideas despegan.</p>
+    <div class="topbar__actions">
+        {# La campana: el número son los avisos sin leer (unread_notifications lo pone teamup/__init__.py) #}
+        <a href="{{ url_for('notifications.index') }}" class="topbar__bell{{ ' topbar__bell--active' if endpoint.startswith('notifications.') }}"
+           title="Notificaciones" aria-label="Notificaciones{% if unread_notifications %}, {{ unread_notifications }} sin leer{% endif %}">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg>
+            {% if unread_notifications %}<span class="topbar__badge">{{ unread_notifications if unread_notifications < 100 else '99+' }}</span>{% endif %}
+        </a>
+        <details class="user-menu">
+            <summary class="topbar__avatar user-menu__toggle" title="Tu cuenta" aria-label="Menú de tu cuenta">{{ current_user.initials }}</summary>
+            <div class="user-menu__panel">
+                <div class="user-menu__head">
+                    <p class="user-menu__name">{{ current_user.full_name }}</p>
+                    <p class="user-menu__username">@{{ current_user.username }}</p>
+                </div>
+                <a href="{{ url_for('profile.public', username=current_user.username) }}" class="user-menu__link{{ ' user-menu__link--active' if own_profile }}">
+                    {{ icon("profile.public") }}Mi perfil
+                </a>
+                <a href="{{ url_for('profile.edit') }}" class="user-menu__link{{ ' user-menu__link--active' if endpoint == 'profile.edit' }}">
+                    {{ icon("profile.edit") }}Configuración de usuario
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="user-menu__link user-menu__link--logout">
+                    {{ icon("logout") }}Cerrar sesión
+                </a>
+            </div>
+        </details>
+    </div>
+</div>

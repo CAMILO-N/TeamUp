@@ -1,0 +1,58 @@
+{# Panel del administrador: filtro de palabras.
+   Espera: form (BannedWordForm), words (BannedWord), csrf_form.
+   Envía (POST): admin.words con el campo word; admin.delete_word sin campos #}
+{% from "_fields.html" import csrf, csrf_input, input_field %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palabras · Administración · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/projects.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main class="admin">
+        <h1 class="admin__title">Panel de <span class="highlight">administración</span></h1>
+        <p class="admin__subtitle">Si un proyecto usa una de estas palabras, queda en revisión hasta que lo apruebes. No importan las mayúsculas ni las tildes.</p>
+
+        {% include "_admin_tabs.html" %}
+        {% include "_flash.html" %}
+
+        <form method="POST" action="{{ url_for('admin.words') }}" class="word-form" novalidate>
+            {{ csrf(form) }}
+            {{ input_field(form.word, "Ej. estafa", "off") }}
+            <button type="submit" class="btn btn--primary btn--sm word-form__btn">+ Agregar</button>
+        </form>
+
+        <p class="admin__count">{{ words|length }} palabra{{ '' if words|length == 1 else 's' }} en el filtro</p>
+
+        {% if words %}
+        <ul class="word-list">
+            {% for banned in words %}
+            <li class="word-list__item">
+                <span class="word-list__text">{{ banned.word }}</span>
+                <form method="POST" action="{{ url_for('admin.delete_word', word_id=banned.id) }}">
+                    {{ csrf_input(csrf_form) }}
+                    <button type="submit" class="word-list__remove" aria-label="Quitar «{{ banned.word }}»" title="Quitar">&times;</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty">
+            <p class="empty__title">El filtro está vacío</p>
+            <p class="empty__text">Agrega las palabras que no deberían aparecer en un proyecto sin que lo revises.</p>
+        </div>
+        {% endif %}
+    </main>
+
+</body>
+</html>

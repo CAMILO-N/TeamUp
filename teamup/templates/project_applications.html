@@ -1,0 +1,104 @@
+{# Postulaciones de un proyecto, agrupadas por rol. Solo las ve su creador.
+   Espera: project y csrf_form. Envía (POST, sin campos): applications.decide con decision = accept | reject.
+   Un proyecto terminado solo se ve: no muestra botones. #}
+{% from "_fields.html" import csrf_input %}
+{% from "_projects.html" import status_badge %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postulaciones · {{ project.title }} · TeamUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/projects.css') }}">
+</head>
+<body>
+
+    {% include "_navbar.html" %}
+
+    <main class="profile profile--wide">
+        <a href="{{ url_for('projects.detail', project_id=project.id) }}" class="profile__back">&larr; Volver al proyecto</a>
+        <h1 class="profile__title">Postulaciones</h1>
+        <p class="profile__subtitle">{{ project.title }} · {{ status_badge(project) }}</p>
+
+        {% include "_flash.html" %}
+
+        {% if project.is_finished %}
+        <div class="notice notice--info">El proyecto terminó: su equipo ya no cambia.</div>
+        {% elif project.status != "open" and project.pending_applications %}
+        <div class="notice notice--info">El proyecto no está buscando gente en Explorar, pero todavía puedes responder a quienes se postularon.</div>
+        {% endif %}
+
+        {% for vacancy in project.vacancies %}
+        <section class="profile-card">
+            <div class="section-head">
+                <div>
+                    <p class="wizard-eyebrow">{{ vacancy.major_label }}</p>
+                    <h2 class="profile-card__title">{{ vacancy.role_name }}</h2>
+                </div>
+                <span class="role__slots">{{ vacancy.members|length }} de {{ vacancy.slots }} ocupado{{ '' if vacancy.slots == 1 else 's' }}</span>
+            </div>
+
+            {% if vacancy.applications %}
+            <ul class="app-list">
+                {# Primero las que esperan respuesta, luego el equipo y al final las cerradas #}
+                {% for state in ("pending", "accepted", "rejected", "withdrawn") %}
+                {% for a in vacancy.applications if a.status == state %}
+                <li class="app-card{{ ' app-card--muted' if state in ('rejected', 'withdrawn') }}">
+                    <div class="app-card__head">
+                        <div class="person person--tight">
+                            <span class="person__avatar person__avatar--sm{{ ' person__avatar--member' if a.is_accepted }}" aria-hidden="true">{{ a.user.initials }}</span>
+                            <div>
+                                <a href="{{ url_for('profile.public', username=a.user.username) }}" class="person__name person__link">{{ a.user.full_name }}</a>
+                                <p class="person__meta">@{{ a.user.username }} · {{ a.user.major.name }} · {{ a.user.semester }}.º semestre{% if a.user.availability %} · {{ a.user.availability_label }}{% endif %}</p>
+                            </div>
+                        </div>
+                        <span class="badge app-status app-status--{{ a.status }}">{{ a.status_label }}</span>
+                    </div>
+                    <p class="app-card__message">{{ a.message }}</p>
+                    {% if a.user.skills %}
+                    <ul class="skill-list skill-list--sm">
+                        {% for skill in a.user.skills %}<li class="skill">{{ skill.name }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                    <div class="app-card__foot">
+                        <p class="app-card__date">
+                            {{ a.created_at.strftime('%d/%m/%Y') }} ·
+                            <a href="mailto:{{ a.user.email }}" class="person__contact">{{ a.user.email }}</a>
+                            {% if a.user.phone %} · <a href="tel:{{ a.user.phone }}" class="person__contact">{{ a.user.phone }}</a>{% endif %}
+                        </p>
+                        {% if a.is_pending and not project.is_finished %}
+                        <div class="actions">
+                            <form method="POST" action="{{ url_for('applications.decide', application_id=a.id, decision='accept') }}">
+                                {{ csrf_input(csrf_form) }}
+                                <button type="submit" class="btn btn--primary btn--sm"{% if vacancy.free_slots == 0 %} disabled title="Este rol ya no tiene lugares libres"{% endif %}>Aceptar</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('applications.decide', application_id=a.id, decision='reject') }}">
+                                {{ csrf_input(csrf_form) }}
+                                <button type="submit" class="btn btn--outline-danger btn--sm">Rechazar</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="profile-card__note">Todavía nadie se postuló a este rol.</p>
+            {% endif %}
+        </section>
+        {% else %}
+        <div class="empty">
+            <p class="empty__title">Este proyecto no tiene roles</p>
+            <p class="empty__text">Agrega roles para que otros estudiantes puedan postularse.</p>
+        </div>
+        {% endfor %}
+    </main>
+
+</body>
+</html>

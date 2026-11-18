@@ -18,8 +18,8 @@
 .admin__subtitle { color: var(--gray); margin-bottom: 24px; }
 .admin__count { color: var(--gray); font-size: 0.85rem; margin: 20px 0 10px 4px; }
 
-/* Pestañas Usuarios / Proyectos */
-.tabs { display: flex; gap: 8px; margin-bottom: 8px; }
+/* Pestañas del panel */
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 
 .tabs__link {
     padding: 8px 20px;
@@ -75,6 +75,7 @@
 
 .user-cell { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .user-cell__name { font-weight: 600; }
+.user-cell__badge { align-self: flex-start; }
 .user-cell__meta { color: var(--gray); font-size: 0.82rem; overflow-wrap: anywhere; }
 
 .user-cell__meta--clamp {
@@ -99,6 +100,46 @@
 .badge--ok  { color: #7BC47F; background: rgba(123, 196, 127, 0.1); border-color: rgba(123, 196, 127, 0.4); }
 .badge--off { color: var(--gray); background: rgba(162, 157, 151, 0.1); }
 .badge--you { color: var(--ochre); background: rgba(242, 179, 61, 0.1); border-color: rgba(242, 179, 61, 0.45); margin-left: 6px; }
+
+/* Filtro de palabras */
+.word-form {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    max-width: 520px;
+    margin-top: 24px;
+}
+
+.word-form .field { flex: 1; margin-bottom: 0; }
+.word-form__btn { margin-top: 27px; flex: none; }
+
+.word-list { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; }
+
+.word-list__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 6px 4px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+}
+
+.word-list__text { font-weight: 500; }
+
+.word-list__remove {
+    width: 26px;
+    height: 26px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--gray);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.word-list__remove:hover { background: rgba(196, 64, 42, 0.18); color: #ffb4a3; }
 
 /* Controles pequeños dentro de la tabla */
 .inline-form, .actions, .table form { display: flex; align-items: center; gap: 8px; }
@@ -238,7 +279,6 @@
 }
 
 @media (max-width: 560px) {
-    .navbar__link--admin { padding: 4px 10px; font-size: 0.8rem; }
     .explore__title { font-size: 2.2rem; }
     .explore__head .btn { width: 100%; text-align: center; }
     .denied { padding: 40px 16px 64px; }

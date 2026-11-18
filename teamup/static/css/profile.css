@@ -13,6 +13,8 @@
 }
 
 .profile__subtitle { color: var(--gray); margin-bottom: 28px; }
+.profile__public-link { display: inline-block; color: var(--coral); font-weight: 600; margin-left: 6px; }
+.profile__public-link:hover { text-decoration: underline; }
 
 .profile__back { color: var(--gray); font-size: 0.9rem; }
 .profile__back:hover { color: var(--bone); }
@@ -134,6 +136,13 @@
     border: 1px solid var(--brick);
 }
 
+/* Algo queda pendiente, como un proyecto en revisión */
+.notice--info {
+    color: var(--bone);
+    background: rgba(242, 179, 61, 0.06);
+    border: 1px dashed rgba(242, 179, 61, 0.55);
+}
+
 /* Botones (un <button> no hereda la fuente por defecto) */
 .btn {
     font: inherit;
@@ -178,6 +187,5 @@
     .profile { padding: 8px 16px 64px; }
     .row, .row--wide-first { grid-template-columns: 1fr; }
     .profile-card { padding: 22px 18px; }
-    .navbar__link--user { display: none; }
     .dialog__btn { width: 100%; text-align: center; }
 }
