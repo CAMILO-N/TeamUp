@@ -1,8 +1,9 @@
-{# Barra lateral de la app (usuario con sesión). En celular pasa a ser una barra arriba.
-   Marca la sección actual según request.endpoint. #}
+{# Barra lateral de la app (usuario con sesión) y franja de arriba con las iniciales.
+   En celular la lateral pasa arriba y la franja se oculta. Marca la sección actual según request.endpoint. #}
 {% set endpoint = request.endpoint or "" %}
 {% set nav_items = [
     ("main.explore", "Explorar", endpoint == "main.explore"),
+    ("main.showcase", "Vitrina", endpoint == "main.showcase"),
     ("projects.mine", "Mis proyectos", endpoint.startswith("projects.") and endpoint != "projects.new"),
     ("profile.edit", "Mi perfil", endpoint.startswith("profile.")),
 ] %}
@@ -14,6 +15,8 @@
 <svg class="sidebar__icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     {% if name == "main.explore" %}
     <circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path>
+    {% elif name == "main.showcase" %}
+    <path d="M12 3l9 5-9 5-9-5z"></path><path d="M3 13l9 5 9-5"></path>
     {% elif name == "projects.mine" %}
     <path d="M3 7h6l2 2h10v10H3z"></path>
     {% elif name == "profile.edit" %}
@@ -48,3 +51,8 @@
         </a>
     </div>
 </header>
+
+<div class="topbar">
+    <p class="topbar__tagline">Juntos, las ideas despegan.</p>
+    <a href="{{ url_for('profile.edit') }}" class="topbar__avatar" title="Mi perfil" aria-label="Mi perfil">{{ current_user.initials }}</a>
+</div>
