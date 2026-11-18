@@ -35,6 +35,13 @@ def explore():
     )
 
 
+@main.route("/showcase")
+@login_required
+def showcase():
+    # Vitrina: lo que ya se hizo en el campus
+    return render_template("showcase.html", projects=Project.showcase().all())
+
+
 @main.route("/faculties/<int:faculty_id>/majors")
 def faculty_majors(faculty_id):
     """Carreras de una facultad en JSON. La usa la lista de carreras del registro y del perfil."""

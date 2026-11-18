@@ -150,6 +150,11 @@ class Project(db.Model):
                 & or_(Vacancy.major_id.is_(None), Vacancy.major.has(Major.faculty_id == faculty_id))))
         return query.order_by(cls.created_at.desc())
 
+    @classmethod
+    def showcase(cls):
+        """Proyectos de la Vitrina: los terminados que no están ocultos, del más reciente al más antiguo."""
+        return cls.query.filter_by(status=PROJECT_FINISHED, is_hidden=False).order_by(cls.finished_at.desc())
+
     @property
     def duration_days(self):
         """Días entre el inicio y el final real; None si todavía no termina."""
