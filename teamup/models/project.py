@@ -3,8 +3,8 @@ from datetime import datetime
 from sqlalchemy import or_
 
 from teamup.choices import (
-    MODALITIES, PROJECT_DRAFT, PROJECT_FINISHED, PROJECT_IN_PROGRESS, PROJECT_OPEN, PROJECT_STATUSES,
-    WEEKLY_HOURS, label,
+    MODALITIES, PROJECT_DRAFT, PROJECT_FINISHED, PROJECT_IN_PROGRESS, PROJECT_OPEN, PROJECT_PENDING_REVIEW,
+    PROJECT_STATUSES, REVIEW_BANNED_WORDS, REVIEW_PENDING, WEEKLY_HOURS, label,
 )
 from teamup.extensions import db
 
@@ -39,6 +39,9 @@ class Project(db.Model):
     # Al borrar el proyecto se borran sus vacantes
     vacancies = db.relationship("Vacancy", back_populates="project", cascade="all, delete-orphan",
                                 order_by="Vacancy.id")
+    # Pedidos de revisión del admin (filtro de palabras o reportes)
+    reviews = db.relationship("ValidationRequest", back_populates="project", cascade="all, delete-orphan",
+                              passive_deletes=True, order_by="ValidationRequest.created_at.desc()")
 
     @property
     def is_draft(self):
@@ -71,6 +74,45 @@ class Project(db.Model):
         if not (self.start_date and self.estimated_end_date and self.weekly_hours and self.modality):
             missing.append("las fechas, la dedicación y la modalidad")
         return missing
+
+    @property
+    def is_in_review(self):
+        return self.status == PROJECT_PENDING_REVIEW
+
+    @property
+    def last_review(self):
+        return self.reviews[0] if self.reviews else None
+
+    def send_to_review(self, source, detail):
+        """Manda el proyecto a la cola del admin: deja de verse en Explorar hasta que lo aprueben.
+
+        source es REVIEW_BANNED_WORDS o REVIEW_REPORT. Si ya hay un pedido pendiente
+        del mismo origen, se actualiza ese en lugar de crear otro."""
+        from teamup.models.validation_request import ValidationRequest
+
+        request = next((r for r in self.reviews if r.status == REVIEW_PENDING and r.source == source), None)
+        if request is None:
+            # Al aprobarlo vuelve a como estaba; un borrador que se publica vuelve como abierto
+            back_to = PROJECT_OPEN if self.status in (PROJECT_DRAFT, PROJECT_PENDING_REVIEW) else self.status
+            request = ValidationRequest(source=source, return_status=back_to)
+            self.reviews.insert(0, request)
+        request.detail = detail
+        self.status = PROJECT_PENDING_REVIEW
+        return request
+
+    def banned_words(self):
+        """Palabras del filtro que aparecen en el título, los resúmenes o los roles."""
+        from teamup.models.banned_word import BannedWord
+
+        texts = [self.title, self.summary, self.description] + [v.role_name for v in self.vacancies]
+        return BannedWord.find_in("\n".join(t for t in texts if t))
+
+    def check_banned_words(self):
+        """Si el proyecto usa palabras del filtro, lo manda a revisión. Devuelve True si lo mandó."""
+        words = self.banned_words()
+        if words:
+            self.send_to_review(REVIEW_BANNED_WORDS, "Palabras marcadas: " + ", ".join(words))
+        return bool(words)
 
     def finish(self, day):
         """Marca el proyecto como terminado en esa fecha. Devuelve un mensaje si no se puede."""
