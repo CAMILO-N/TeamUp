@@ -30,5 +30,10 @@ class User(UserMixin, db.Model):
                                order_by="Project.created_at.desc()")
 
     @property
+    def initials(self):
+        """Iniciales para el círculo del usuario, como "CN"."""
+        return (self.first_name[:1] + self.last_name[:1]).upper()
+
+    @property
     def is_admin(self):
         return self.role.name == ADMIN

@@ -103,8 +103,45 @@ a {
 }
 
 /* El contenido deja libre el ancho de la barra */
-.sidebar ~ main {
+.sidebar ~ main,
+.topbar {
     margin-left: 240px;
+}
+
+/* Franja de arriba, con las iniciales del usuario */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 32px;
+    border-bottom: 1px solid var(--border);
+}
+
+.topbar__tagline {
+    color: var(--gray);
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+}
+
+.topbar__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--coral);
+    color: var(--bone);
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: box-shadow .15s;
+}
+
+.topbar__avatar:hover,
+.topbar__avatar:focus-visible {
+    box-shadow: 0 0 0 3px rgba(228, 87, 46, 0.35);
+    outline: none;
 }
 
 .sidebar__logo {
@@ -430,6 +467,11 @@ a {
 
     .sidebar ~ main {
         margin-left: 0;
+    }
+
+    /* En celular "Mi perfil" ya está en la barra */
+    .topbar {
+        display: none;
     }
 
     .sidebar__logo {
