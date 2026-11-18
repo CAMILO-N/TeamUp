@@ -114,6 +114,30 @@ class Project(db.Model):
             self.send_to_review(REVIEW_BANNED_WORDS, "Palabras marcadas: " + ", ".join(words))
         return bool(words)
 
+    @property
+    def total_slots(self):
+        return sum(vacancy.slots for vacancy in self.vacancies)
+
+    @property
+    def initials(self):
+        """Iniciales del proyecto para su círculo: "Punto de fuga" queda "PF" (se saltan las palabras cortas)."""
+        words = [word for word in self.title.split() if len(word) > 2] or self.title.split()
+        return "".join(word[0] for word in words[:2]).upper()
+
+    def start(self):
+        """El equipo ya arrancó: deja de buscar gente en Explorar. Devuelve un mensaje si no se puede."""
+        if self.status != PROJECT_OPEN:
+            return "Solo se puede arrancar un proyecto abierto."
+        self.status = PROJECT_IN_PROGRESS
+        return None
+
+    def reopen(self):
+        """Un proyecto en curso vuelve a buscar gente (por ejemplo, si alguien se fue)."""
+        if self.status != PROJECT_IN_PROGRESS:
+            return "Solo un proyecto en curso puede volver a buscar gente."
+        self.status = PROJECT_OPEN
+        return None
+
     def finish(self, day):
         """Marca el proyecto como terminado en esa fecha. Devuelve un mensaje si no se puede."""
         if self.status not in (PROJECT_OPEN, PROJECT_IN_PROGRESS):
